@@ -21,65 +21,16 @@ namespace Crystal.Common
 
         [FieldOffset(8)][SerializeField] private NumericType _type;
 
-        public AnyNumber(byte value) : this()
-        {
-            _asByte = value;
-            _type = NumericType.Byte;
-        }
-
-        public AnyNumber(sbyte value) : this()
-        {
-            _asSByte = value;
-            _type = NumericType.SByte;
-        }
-
-        public AnyNumber(ushort value) : this()
-        {
-            _asUInt16 = value;
-            _type = NumericType.UInt16;
-        }
-
-        public AnyNumber(short value) : this()
-        {
-            _asInt16 = value;
-            _type = NumericType.Int16;
-        }
-
-        public AnyNumber(uint value) : this()
-        {
-            _asUInt32 = value;
-            _type = NumericType.UInt32;
-        }
-
-        public AnyNumber(int value) : this()
-        {
-            _asInt32 = value;
-            _type = NumericType.Int32;
-        }
-
-        public AnyNumber(ulong value) : this()
-        {
-            _asUInt64 = value;
-            _type = NumericType.UInt64;
-        }
-
-        public AnyNumber(long value) : this()
-        {
-            _asInt64 = value;
-            _type = NumericType.Int64;
-        }
-
-        public AnyNumber(float value) : this()
-        {
-            _asSingle = value;
-            _type = NumericType.Single;
-        }
-
-        public AnyNumber(double value) : this()
-        {
-            _asDouble = value;
-            _type = NumericType.Double;
-        }
+        public AnyNumber(byte value) : this() { _asByte = value; _type = NumericType.Byte; }
+        public AnyNumber(sbyte value) : this() { _asSByte = value; _type = NumericType.SByte; }
+        public AnyNumber(ushort value) : this() { _asUInt16 = value; _type = NumericType.UInt16; }
+        public AnyNumber(short value) : this() { _asInt16 = value; _type = NumericType.Int16; }
+        public AnyNumber(uint value) : this() { _asUInt32 = value; _type = NumericType.UInt32; }
+        public AnyNumber(int value) : this() { _asInt32 = value; _type = NumericType.Int32; }
+        public AnyNumber(ulong value) : this() { _asUInt64 = value; _type = NumericType.UInt64; }
+        public AnyNumber(long value) : this() { _asInt64 = value; _type = NumericType.Int64; }
+        public AnyNumber(float value) : this() { _asSingle = value; _type = NumericType.Single; }
+        public AnyNumber(double value) : this() { _asDouble = value; _type = NumericType.Double; }
 
         public object Value => _type switch
         {

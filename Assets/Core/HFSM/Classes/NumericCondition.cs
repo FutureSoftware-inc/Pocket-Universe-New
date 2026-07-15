@@ -12,7 +12,7 @@ namespace Crystal.HFSM
         protected override bool Evaluate(TContext context)
         {
             throw new System.NotImplementedException();
-            long
+            
         }
     }
 }
