@@ -63,6 +63,99 @@ namespace Crystal.Common.Editor
             return ObjectNames.NicifyVariableName(type.Name);
         }
 
+        public static string GetTypeTooltip(Type type)
+        {
+            if (type == null) return string.Empty;
+            var typesWithTooltip = TypeCache.GetTypesWithAttribute(typeof(TypeTooltipAttribute));
+            if (typesWithTooltip.Contains(type))
+            {
+                return type.GetCustomAttribute<TypeTooltipAttribute>()?.Tooltip ?? string.Empty;
+            }
+            return string.Empty;
+        }
+
+        public static List<Type> GetAssingableTypes(SerializedProperty property)
+        {
+            return TypeUtils.GetAssignableSerializeReferenceTypes(property);
+        }
+
+        public static void WriteNewInstanceByType(Type newType, SerializedProperty property, Rect propertyRect, bool registerUndo)
+        {
+            Type propertyType = TypeUtils.ExtractTypeFromString(property.managedReferenceFieldTypename);
+            if (newType?.IsGenericType == true)
+            {
+                Type concreteGenericType = TypeUtils.GetConcreteGenericType(propertyType, newType);
+                if (concreteGenericType != null)
+                {
+                    CreateAndApplyNewInstanceFromType(concreteGenericType, property, registerUndo);
+                }
+                else
+                {
+                    GenericTypeCreateWindow.ShowCreateTypeMenu(property, propertyRect, newType,
+                        (type) => CreateAndApplyNewInstanceFromType(type, property, registerUndo));
+                }
+            }
+            else
+            {
+                CreateAndApplyNewInstanceFromType(newType, property, registerUndo);
+            }
+        }
+
+        private static void CreateAndApplyNewInstanceFromType(Type concreteGenericType, SerializedProperty property, bool registerUndo)
+        {
+            var newObject = TypeUtils.CreateObjectFromType(concreteGenericType);
+            ApplyValueToProperty(newObject);
+
+            void ApplyValueToProperty(object value)
+            {
+                var targets = property.serializedObject.targetObjects;
+
+                // Multiple object edit.
+                //One Serialized Object for multiple Objects work sometimes incorrectly  
+                foreach (var target in targets)
+                {
+                    using var so = new SerializedObject(target);
+                    var targetProperty = so.FindProperty(property.propertyPath);
+                    var previousJsonData = string.Empty;
+                    if (targetProperty.managedReferenceValue != null)
+                    {
+                        previousJsonData = JsonUtility.ToJson(targetProperty.managedReferenceValue);
+                    }
+
+                    if (value != null)
+                    {
+                        JsonUtility.FromJsonOverwrite(previousJsonData, value);
+                    }
+
+                    targetProperty.managedReferenceValue = value;
+
+                    so.ApplyModifiedProperties();
+                    so.Update();
+                }
+
+                if (registerUndo)
+                {
+                    SOUtils.RegisterUndo(targets, "Apply new type");
+                }
+            }
+        }
+
+        public static void OpenSourceFile(Type type)
+        {
+            if (type == null)
+            {
+                return;
+            }
+
+            var (filePath, lineNumber, columnNumber) = CodeAnalysis.GetSourceFileLocation(type);
+
+            if (string.IsNullOrEmpty(filePath) == false)
+            {
+                var asset = AssetDatabase.LoadMainAssetAtPath(filePath);
+                AssetDatabase.OpenAsset(asset, lineNumber, columnNumber);
+            }
+        }
+
         private static string GetCustomTypeName(Type type)
         {
             var typesWithNames = TypeCache.GetTypesWithAttribute(typeof(SerializeReferenceNameAttribute));
@@ -81,7 +174,115 @@ namespace Crystal.Common.Editor
             return null;
         }
 
+        public static void ShowOpenSourceFileMenu(SerializedProperty property, Rect buttonRect)
+        {
+            var menu = new GenericMenu();
+            var typeItems = GetOpenSourceFileTypeItems(property);
+            foreach (var typeItem in typeItems)
+            {
+                menu.AddItem(new GUIContent(typeItem.menuPath), false, () => OpenSourceFile(typeItem.type));
+            }
 
+            if (typeItems.Count == 0)
+            {
+                menu.AddDisabledItem(new GUIContent("No type"));
+            }
+
+            menu.DropDown(buttonRect);
+        }
+
+        private static List<(string menuPath, Type type)> GetOpenSourceFileTypeItems(SerializedProperty property)
+        {
+            var typeItems = new List<(string menuPath, Type type)>();
+            var addedTypes = new HashSet<Type>();
+            var fieldType = TypeUtils.ExtractTypeFromString(property.managedReferenceFieldTypename);
+            var valueType = TypeUtils.ExtractTypeFromString(property.managedReferenceFullTypename);
+
+            AddTypeItem("Field", fieldType);
+            AddTypeItem("Value", valueType);
+
+            return typeItems;
+
+            void AddTypeItem(string labelPrefix, Type type)
+            {
+                if (type == null || addedTypes.Add(type) == false)
+                {
+                    return;
+                }
+
+                typeItems.Add(($"{labelPrefix}: {GetTypeName(type)}", type));
+
+                if (type.IsGenericType == false)
+                {
+                    return;
+                }
+
+                var genericArguments = type.GetGenericArguments();
+                for (int i = 0; i < genericArguments.Length; i++)
+                {
+                    AddTypeItem($"{labelPrefix} Arg {i}", genericArguments[i]);
+                }
+            }
+        }
+
+        public static void ShowSearchTool(Type type)
+        {
+            SearchToolWindow.ShowSearchTypeWindow(type);
+        }
+
+
+        public static bool TryGetMissingType(SerializedProperty property, string assetPath,
+            out ManagedReferenceMissingType missingType)
+        {
+            var checkObject = property.serializedObject.targetObject;
+            missingType = default;
+            var haveMissingTypes = SerializationUtility.HasManagedReferencesWithMissingTypes(checkObject);
+            if (haveMissingTypes == false)
+            {
+                return false;
+            }
+
+            var missingTypes = SerializationUtility.GetManagedReferencesWithMissingTypes(checkObject);
+            var missingFromUnity = GetMissingType(property.managedReferenceId);
+            if (missingFromUnity != null)
+            {
+                missingType = missingFromUnity.Value;
+                return true;
+            }
+
+            if (string.IsNullOrEmpty(assetPath) == false)
+            {
+                if (PropertyDrawerGlobalCaches.targetObjectAndMissingPaths.TryGetValue(checkObject, out var missingPropertyPaths) == false)
+                {
+                    missingPropertyPaths = MissingTypeUtils.GetMissingPropertyPaths(property, assetPath);
+                    PropertyDrawerGlobalCaches.targetObjectAndMissingPaths[checkObject] = missingPropertyPaths;
+                }
+
+                var missingIdFromYaml =
+                    missingPropertyPaths.FirstOrDefault(t => t.propertyPath == property.propertyPath).refId;
+                var missingTypeFromYaml = GetMissingType(missingIdFromYaml);
+                if (missingTypeFromYaml != null)
+                {
+                    missingType = missingTypeFromYaml.Value;
+                    return true;
+                }
+            }
+
+            return false;
+
+            ManagedReferenceMissingType? GetMissingType(long id)
+            {
+                foreach (var missingType in missingTypes)
+                {
+                    if (missingType.referenceId == id)
+                    {
+                        return missingType;
+                    }
+                }
+
+                return null;
+            }
+        }
 
         private static string GetGenericArgumentsName(Type type)
         {
