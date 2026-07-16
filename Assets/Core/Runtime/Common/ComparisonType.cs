@@ -3,7 +3,7 @@ using System;
 namespace Crystal.Common
 {
     [Flags]
-    public enum ComprassionType : byte
+    public enum ComparisonType : byte
     {
         None = 0,
         Less = 1 << 0,
