@@ -1,5 +1,12 @@
 {
   "dependencies": {
+    "com.beardedplatypus.priorityqueue": {
+      "version": "https://github.com/BeardedPlatypus/unity-net-priority-queue.git",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "ffb0820378adda791eafab430983d72ff573418e"
+    },
     "com.unity.2d.animation": {
       "version": "15.1.0",
       "depth": 0,
