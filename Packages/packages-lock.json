@@ -1,11 +1,13 @@
 {
   "dependencies": {
-    "com.beardedplatypus.priorityqueue": {
-      "version": "https://github.com/BeardedPlatypus/unity-net-priority-queue.git",
+    "com.alexeytaranov.serializereferencedropdown": {
+      "version": "https://github.com/AlexeyTaranov/SerializeReferenceDropdown.git",
       "depth": 0,
       "source": "git",
-      "dependencies": {},
-      "hash": "ffb0820378adda791eafab430983d72ff573418e"
+      "dependencies": {
+        "com.unity.nuget.newtonsoft-json": "3.2.0"
+      },
+      "hash": "0c915665a9bcedb69a1502918d470e57aaee9edc"
     },
     "com.unity.2d.animation": {
       "version": "15.1.0",
@@ -190,7 +192,7 @@
     },
     "com.unity.nuget.newtonsoft-json": {
       "version": "3.2.2",
-      "depth": 2,
+      "depth": 1,
       "source": "registry",
       "dependencies": {},
       "url": "https://packages.unity.com"

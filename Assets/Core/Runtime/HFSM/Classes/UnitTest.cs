@@ -5,10 +5,10 @@ using UnityEngine;
 
 public class UnitTest : MonoBehaviour
 {
-    [SerializeReferenceSelector]
+    [SerializeReferenceDropdown]
     [SerializeReference]
     public List<Condition<UnitTest>> ConditionsList = new List<Condition<UnitTest>>();
-    [SerializeReferenceSelector]
+    [SerializeReferenceDropdown]
     [SerializeReference]
     public List<MonoBehaviour> BehaviourList = new List<MonoBehaviour>();
     
