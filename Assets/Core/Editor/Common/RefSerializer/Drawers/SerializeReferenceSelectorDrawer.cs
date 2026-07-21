@@ -188,9 +188,15 @@ namespace Crystal.Common.Editor
         private void RefreshField(SerializedProperty property, VisualElement target)
         {
             PropertyField initialField = new PropertyField(property, _cachedBaseTypeName);
+
             initialField.RegisterCallback<GeometryChangedEvent>(@event =>
             {
                 ExpandFoldout(initialField);
+                PropertyField propertyNameField = initialField.Q<PropertyField>("unity-property-field-_propertyName");
+                if (propertyNameField != null)
+                {
+                    propertyNameField.label = "Property Name";
+                }
             });
             initialField.Bind(property.serializedObject);
             target.Add(initialField);
@@ -213,25 +219,19 @@ namespace Crystal.Common.Editor
         private void RegistryValueChange(Type newValue, SerializedProperty property, VisualElement fieldsContainer, Button selectorButton, Button resetButton, Button openScriptButton)
         {
             Undo.RecordObject(property.serializedObject.targetObject, "Change SerializeReference Type");
-
             object oldObject = property.managedReferenceValue;
             object newObject = newValue != null ? ReferenceFactory.CreateInstance(newValue) : null;
-
             if (oldObject != null && newObject != null)
             {
                 DataMigrator.MigrateData(oldObject, newObject);
             }
-
             property.managedReferenceValue = newObject;
             property.serializedObject.ApplyModifiedProperties();
-
             selectorButton.text = GetCleanTypeName(newValue, _cachedBaseType);
             fieldsContainer.Clear();
-
             bool hasValue = newValue != null;
             resetButton.style.display = hasValue ? DisplayStyle.Flex : DisplayStyle.None;
             openScriptButton.style.display = hasValue ? DisplayStyle.Flex : DisplayStyle.None;
-
             if (hasValue)
             {
                 RefreshField(property, fieldsContainer);
@@ -251,7 +251,6 @@ namespace Crystal.Common.Editor
         {
             object managedObject = property.managedReferenceValue;
             if (managedObject == null) return;
-
             Type type = managedObject.GetType();
             if (type.IsGenericType) { type = type.GetGenericTypeDefinition(); }
             string searchName = type.Name.Contains('`') ? type.Name.Split('`')[0] : type.Name;

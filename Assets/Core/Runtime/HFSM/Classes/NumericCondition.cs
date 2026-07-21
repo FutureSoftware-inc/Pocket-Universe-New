@@ -5,7 +5,6 @@ using Crystal.Common;
 namespace Crystal.HFSM
 {
     [Serializable]
-    [SubclassPath("HFSM/Condition/Numeric")]
     public class NumericCondition<TContext> : Condition<TContext> where TContext : class
     {
         [SerializeField] private AnyNumber _selecctionValue;

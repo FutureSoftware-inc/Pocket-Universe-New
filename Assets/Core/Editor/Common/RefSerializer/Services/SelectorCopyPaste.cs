@@ -6,7 +6,11 @@ namespace Crystal.Common.Editor
 {
     public static class SelectorCopyPaste
     {
-        private const string CopyBufferMarker = "RefSerializer_JSON:";
+        internal const string COPY_BUFFER_MARKER = "RefSerializer_JSON:";
+
+        private static Type _cachedType;
+        private static string _cachedJson;
+        private static string _cachedRawBuffer;
 
         public static void Copy(object target)
         {
@@ -15,7 +19,8 @@ namespace Crystal.Common.Editor
             {
                 string typeName = target.GetType().AssemblyQualifiedName;
                 string json = EditorJsonUtility.ToJson(target);
-                EditorGUIUtility.systemCopyBuffer = $"{CopyBufferMarker}{typeName}|{json}";
+                ClearCache();
+                EditorGUIUtility.systemCopyBuffer = $"{COPY_BUFFER_MARKER}{typeName}|{json}";
             }
             catch (Exception exception)
             {
@@ -25,27 +30,15 @@ namespace Crystal.Common.Editor
 
         public static object Paste()
         {
-            string buffer = EditorGUIUtility.systemCopyBuffer;
-            if (string.IsNullOrEmpty(buffer) || !buffer.StartsWith(CopyBufferMarker))
-            {
-                return null;
-            }
             try
             {
-                string cleanBuffer = buffer.Substring(CopyBufferMarker.Length);
-                string[] parts = cleanBuffer.Split('|', 2);
-                if (parts.Length < 2) return null;
-                string typeName = parts[0];
-                string json = parts[1];
-                Type type = Type.GetType(typeName);
-                if (type == null)
+                if (_cachedType == null || string.IsNullOrEmpty(_cachedJson))
                 {
-                    Debug.LogWarning($"[CopyPaste] Не удалось распознать тип {typeName} при вставке из буфера обмена.");
                     return null;
                 }
-                object newInstance = ReferenceFactory.CreateInstance(type);
+                object newInstance = ReferenceFactory.CreateInstance(_cachedType);
                 if (newInstance == null) return null;
-                EditorJsonUtility.FromJsonOverwrite(json, newInstance);
+                EditorJsonUtility.FromJsonOverwrite(_cachedJson, newInstance);
                 return newInstance;
             }
             catch (Exception exception)
@@ -57,49 +50,68 @@ namespace Crystal.Common.Editor
 
         public static bool CanPaste(Type baseType)
         {
-            string buffer = EditorGUIUtility.systemCopyBuffer;
-            if (string.IsNullOrEmpty(buffer) || !buffer.StartsWith(CopyBufferMarker))
+            string currentBuffer = EditorGUIUtility.systemCopyBuffer;
+            if (string.IsNullOrEmpty(currentBuffer) || !currentBuffer.StartsWith(COPY_BUFFER_MARKER))
             {
+                ClearCache();
                 return false;
             }
-
+            if (currentBuffer == _cachedRawBuffer && _cachedType != null)
+            {
+                return IsTypeCompatible(baseType, _cachedType);
+            }
             try
             {
-                string cleanBuffer = buffer.Substring(CopyBufferMarker.Length);
+                string cleanBuffer = currentBuffer.Substring(COPY_BUFFER_MARKER.Length);
                 string[] parts = cleanBuffer.Split('|', 2);
                 if (parts.Length < 2) return false;
                 string typeName = parts[0];
                 Type copiedType = Type.GetType(typeName);
                 if (copiedType == null) return false;
-                if (!baseType.IsGenericType && !copiedType.IsGenericType)
-                {
-                    return baseType.IsAssignableFrom(copiedType);
-                }
-                Type openCopiedType = copiedType.IsGenericType ? copiedType.GetGenericTypeDefinition() : copiedType;
-                Type openBaseType = baseType.IsGenericType ? baseType.GetGenericTypeDefinition() : baseType;
-                if (openBaseType.IsAssignableFrom(openCopiedType)) return true;
-                if (openBaseType.IsInterface)
-                {
-                    foreach (Type interfaceType in openCopiedType.GetInterfaces())
-                    {
-                        Type checkInterface = interfaceType.IsGenericType ? interfaceType.GetGenericTypeDefinition() : interfaceType;
-                        if (checkInterface == openBaseType) return true;
-                    }
-                }
-                Type currentBase = openCopiedType.BaseType;
-                while (currentBase != null && currentBase != typeof(object))
-                {
-                    Type checkBase = currentBase.IsGenericType ? currentBase.GetGenericTypeDefinition() : currentBase;
-                    if (checkBase == openBaseType) return true;
-                    currentBase = currentBase.BaseType;
-                }
-                return false;
+                _cachedRawBuffer = currentBuffer;
+                _cachedType = copiedType;
+                _cachedJson = parts[1];
+                return IsTypeCompatible(baseType, _cachedType);
             }
             catch
             {
+                ClearCache();
                 return false;
             }
         }
 
+        private static bool IsTypeCompatible(Type baseType, Type copiedType)
+        {
+            if (!baseType.IsGenericType && !copiedType.IsGenericType)
+            {
+                return baseType.IsAssignableFrom(copiedType);
+            }
+            Type openCopiedType = copiedType.IsGenericType ? copiedType.GetGenericTypeDefinition() : copiedType;
+            Type openBaseType = baseType.IsGenericType ? baseType.GetGenericTypeDefinition() : baseType;
+            if (openBaseType.IsAssignableFrom(openCopiedType)) return true;
+            if (openBaseType.IsInterface)
+            {
+                foreach (Type interfaceType in openCopiedType.GetInterfaces())
+                {
+                    Type checkInterface = interfaceType.IsGenericType ? interfaceType.GetGenericTypeDefinition() : interfaceType;
+                    if (checkInterface == openBaseType) return true;
+                }
+            }
+            Type currentBase = openCopiedType.BaseType;
+            while (currentBase != null && currentBase != typeof(object))
+            {
+                Type checkBase = currentBase.IsGenericType ? currentBase.GetGenericTypeDefinition() : currentBase;
+                if (checkBase == openBaseType) return true;
+                currentBase = currentBase.BaseType;
+            }
+            return false;
+        }
+
+        private static void ClearCache()
+        {
+            _cachedType = null;
+            _cachedJson = string.Empty;
+            _cachedRawBuffer = string.Empty;
+        }
     }
 }
