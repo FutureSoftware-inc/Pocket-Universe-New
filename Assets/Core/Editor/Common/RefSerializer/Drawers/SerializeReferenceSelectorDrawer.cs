@@ -189,14 +189,9 @@ namespace Crystal.Common.Editor
         {
             PropertyField initialField = new PropertyField(property, _cachedBaseTypeName);
 
-            initialField.RegisterCallback<GeometryChangedEvent>(@event =>
+            initialField.RegisterCallback<AttachToPanelEvent>(@event =>
             {
                 ExpandFoldout(initialField);
-                PropertyField propertyNameField = initialField.Q<PropertyField>("unity-property-field-_propertyName");
-                if (propertyNameField != null)
-                {
-                    propertyNameField.label = "Property Name";
-                }
             });
             initialField.Bind(property.serializedObject);
             target.Add(initialField);

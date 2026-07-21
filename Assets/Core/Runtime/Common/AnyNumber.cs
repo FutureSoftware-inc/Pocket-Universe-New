@@ -19,20 +19,22 @@ namespace Crystal.Common
         [FieldOffset(0)][SerializeField] private float _asSingle;
         [FieldOffset(0)][SerializeField] private double _asDouble;
 
-        [FieldOffset(8)][SerializeField] private NumericType _type;
+        [FieldOffset(8)][SerializeField] private NumericType _currentType;
 
-        public AnyNumber(byte value) : this() { _asByte = value; _type = NumericType.Byte; }
-        public AnyNumber(sbyte value) : this() { _asSByte = value; _type = NumericType.SByte; }
-        public AnyNumber(ushort value) : this() { _asUInt16 = value; _type = NumericType.UInt16; }
-        public AnyNumber(short value) : this() { _asInt16 = value; _type = NumericType.Int16; }
-        public AnyNumber(uint value) : this() { _asUInt32 = value; _type = NumericType.UInt32; }
-        public AnyNumber(int value) : this() { _asInt32 = value; _type = NumericType.Int32; }
-        public AnyNumber(ulong value) : this() { _asUInt64 = value; _type = NumericType.UInt64; }
-        public AnyNumber(long value) : this() { _asInt64 = value; _type = NumericType.Int64; }
-        public AnyNumber(float value) : this() { _asSingle = value; _type = NumericType.Single; }
-        public AnyNumber(double value) : this() { _asDouble = value; _type = NumericType.Double; }
+        public AnyNumber(byte value) : this() { _asByte = value; _currentType = NumericType.Byte; }
+        public AnyNumber(sbyte value) : this() { _asSByte = value; _currentType = NumericType.SByte; }
+        public AnyNumber(ushort value) : this() { _asUInt16 = value; _currentType = NumericType.UInt16; }
+        public AnyNumber(short value) : this() { _asInt16 = value; _currentType = NumericType.Int16; }
+        public AnyNumber(uint value) : this() { _asUInt32 = value; _currentType = NumericType.UInt32; }
+        public AnyNumber(int value) : this() { _asInt32 = value; _currentType = NumericType.Int32; }
+        public AnyNumber(ulong value) : this() { _asUInt64 = value; _currentType = NumericType.UInt64; }
+        public AnyNumber(long value) : this() { _asInt64 = value; _currentType = NumericType.Int64; }
+        public AnyNumber(float value) : this() { _asSingle = value; _currentType = NumericType.Single; }
+        public AnyNumber(double value) : this() { _asDouble = value; _currentType = NumericType.Double; }
 
-        public object Value => _type switch
+        public NumericType CurrentType => _currentType;
+
+        public object Value => _currentType switch
         {
             NumericType.Byte => _asByte,
             NumericType.SByte => _asSByte,
@@ -45,6 +47,21 @@ namespace Crystal.Common
             NumericType.Single => _asSingle,
             NumericType.Double => _asDouble,
             _ => 0f
+        };
+
+        public Type ValueType => _currentType switch
+        {
+            NumericType.Byte => typeof(byte),
+            NumericType.SByte => typeof(sbyte),
+            NumericType.UInt16 => typeof(ushort),
+            NumericType.Int16 => typeof(short),
+            NumericType.UInt32 => typeof(uint),
+            NumericType.Int32 => typeof(int),
+            NumericType.UInt64 => typeof(ulong),
+            NumericType.Int64 => typeof(long),
+            NumericType.Single => typeof(float),
+            NumericType.Double => typeof(double),
+            _ => typeof(float)
         };
 
         public int CompareTo(object obj)
@@ -118,25 +135,25 @@ namespace Crystal.Common
         public static AnyNumber operator +(AnyNumber left, AnyNumber right)
         {
             double result = Convert.ToDouble(left.Value) + Convert.ToDouble(right.Value);
-            return CreatePromotedNubmer(left._type, right._type, result);
+            return CreatePromotedNubmer(left._currentType, right._currentType, result);
         }
 
         public static AnyNumber operator -(AnyNumber left, AnyNumber right)
         {
             double result = Convert.ToDouble(left.Value) - Convert.ToDouble(right.Value);
-            return CreatePromotedNubmer(left._type, right._type, result);
+            return CreatePromotedNubmer(left._currentType, right._currentType, result);
         }
 
         public static AnyNumber operator *(AnyNumber left, AnyNumber right)
         {
             double result = Convert.ToDouble(left.Value) * Convert.ToDouble(right.Value);
-            return CreatePromotedNubmer(left._type, right._type, result);
+            return CreatePromotedNubmer(left._currentType, right._currentType, result);
         }
 
         public static AnyNumber operator /(AnyNumber left, AnyNumber right)
         {
             double result = Convert.ToDouble(left.Value) / Convert.ToDouble(right.Value);
-            return CreatePromotedNubmer(left._type, right._type, result);
+            return CreatePromotedNubmer(left._currentType, right._currentType, result);
         }
 
         private static AnyNumber CreatePromotedNubmer(NumericType type1, NumericType type2, double value)

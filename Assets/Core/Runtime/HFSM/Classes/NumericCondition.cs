@@ -5,39 +5,42 @@ using Crystal.Common;
 namespace Crystal.HFSM
 {
     [Serializable]
-    public class NumericCondition<TContext> : Condition<TContext> where TContext : class
+    public sealed class NumericCondition<TContext> : Condition<TContext> where TContext : class, IBlackboardProvider
     {
-        [SerializeField] private AnyNumber _selecctionValue;
-        [SerializeField] private ComparisonType _comprarisonType = ComparisonType.None;
-        private Func<TContext, IComparable> _valueSelector;
+        [SerializeField] private AnyNumber _selectionValue;
+        [SerializeField] private ComparisonType _comparisonType = ComparisonType.None;
 
-        public void Initialize(Func<TContext, IComparable> valueSelector)
-        {
-            _valueSelector = valueSelector;
-        }
         protected override bool Evaluate(TContext context)
         {
-            if (_valueSelector == null)
+            if (_comparisonType == ComparisonType.None) return false;
+            AnyNumber currentValue = GetValueFromBlackboard(context.Blackboard);
+            return _comparisonType switch
             {
-                return false;
-            }
-            if (_comprarisonType == ComparisonType.None)
-            {
-                return false;
-            }
-            IComparable currentValue = _valueSelector(context);
-            if (currentValue == null)
-            {
-                return false;
-            }
-            int compareResult = _selecctionValue.CompareTo(currentValue);
-            ComparisonType currentFrameResultBit = compareResult switch
-            {
-                > 0 => ComparisonType.Less,
-                0 => ComparisonType.Equal,
-                < 0 => ComparisonType.Greater
+                ComparisonType.Equal => _selectionValue == currentValue,
+                ComparisonType.Less => _selectionValue < currentValue,
+                ComparisonType.Greater => _selectionValue > currentValue,
+                ComparisonType.Less | ComparisonType.Equal => _selectionValue <= currentValue,
+                ComparisonType.Greater | ComparisonType.Equal => _selectionValue >= currentValue,
+                _ => false
             };
-            return (_comprarisonType & currentFrameResultBit) != ComparisonType.None;
+        }
+
+        private AnyNumber GetValueFromBlackboard(Blackboard blackboard)
+        {
+            return _selectionValue.CurrentType switch
+            {
+                NumericType.SByte => blackboard.Get<sbyte>(PropertyName),
+                NumericType.Byte => blackboard.Get<byte>(PropertyName),
+                NumericType.Int16 => blackboard.Get<short>(PropertyName),
+                NumericType.UInt16 => blackboard.Get<ushort>(PropertyName),
+                NumericType.Int32 => blackboard.Get<int>(PropertyName),
+                NumericType.UInt32 => blackboard.Get<uint>(PropertyName),
+                NumericType.Int64 => blackboard.Get<long>(PropertyName),
+                NumericType.UInt64 => blackboard.Get<ulong>(PropertyName),
+                NumericType.Single => blackboard.Get<float>(PropertyName),
+                NumericType.Double => blackboard.Get<double>(PropertyName),
+                _ => blackboard.Get<float>(PropertyName)
+            };
         }
     }
 }

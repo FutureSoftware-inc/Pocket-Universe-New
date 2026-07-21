@@ -9,7 +9,7 @@ namespace Crystal.Editor
     [CustomPropertyDrawer(typeof(AnyNumber))]
     public class AnyNumberDrawer : PropertyDrawer
     {
-        internal const string PROP_TYPE = "_type";
+        internal const string PROP_TYPE = "_currentType";
         internal const string PROP_BYTE = "_asByte";
         internal const string PROP_SBYTE = "_asSByte";
         internal const string PROP_UINT16 = "_asUInt16";
