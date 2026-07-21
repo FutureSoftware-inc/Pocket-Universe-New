@@ -152,58 +152,23 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UnitTest
   ConditionsList:
-  - rid: 7003737801801859332
-  - rid: 7003737801801859333
-  - rid: 7003737801801859334
-  BehaviourList:
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
+  - rid: 7003737801801859350
+  ConditionsList2:
+  - rid: -2
+  - rid: -2
+  State:
+    rid: -2
   references:
     version: 2
     RefIds:
-    - rid: 7003737801801859332
+    - rid: -2
+      type: {class: , ns: , asm: }
+    - rid: 7003737801801859350
       type: {class: 'BoolCondition`1[[UnitTest, Assembly-CSharp]]', ns: Crystal.HFSM, asm: Assembly-CSharp}
       data:
         _propertyName: Property name
         _invert: 0
         _expectedValue: 0
-    - rid: 7003737801801859333
-      type: {class: 'NumericCondition`1[[UnitTest, Assembly-CSharp]]', ns: Crystal.HFSM, asm: Assembly-CSharp}
-      data:
-        _propertyName: Property name
-        _invert: 0
-        _selecctionValue:
-          _asByte: 0
-          _asSByte: 0
-          _asUInt16: 0
-          _asInt16: 0
-          _asUInt32: 0
-          _asInt32: 0
-          _asUInt64: 0
-          _asInt64: 0
-          _asSingle: 0
-          _asDouble: 0
-          _type: 0
-        _comprarisonType: 0
-    - rid: 7003737801801859334
-      type: {class: 'NumericCondition`1[[UnitTest, Assembly-CSharp]]', ns: Crystal.HFSM, asm: Assembly-CSharp}
-      data:
-        _propertyName: Property name
-        _invert: 0
-        _selecctionValue:
-          _asByte: 0
-          _asSByte: 0
-          _asUInt16: 0
-          _asInt16: 0
-          _asUInt32: 0
-          _asInt32: 0
-          _asUInt64: 0
-          _asInt64: 0
-          _asSingle: 0
-          _asDouble: 0
-          _type: 0
-        _comprarisonType: 0
 --- !u!114 &1807219703
 MonoBehaviour:
   m_ObjectHideFlags: 0

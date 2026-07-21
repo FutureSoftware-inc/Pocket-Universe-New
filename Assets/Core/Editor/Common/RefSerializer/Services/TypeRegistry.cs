@@ -21,21 +21,23 @@ namespace Crystal.Common.Editor
             {
                 throw new ArgumentNullException(nameof(baseType));
             }
-            if (_typeCache.TryGetValue(baseType, out List<Type> cachedTypes))
+            Type searchType = baseType.IsGenericType && !baseType.IsGenericTypeDefinition ? baseType.GetGenericTypeDefinition() : baseType;
+            if (_typeCache.TryGetValue(searchType, out List<Type> cachedTypes))
             {
                 return cachedTypes;
             }
-            List<Type> derivedTypes = TypeCache.GetTypesDerivedFrom(baseType) //
-                .Where(IsValidImplementation)
-                .ToList();
-
-            _typeCache[baseType] = derivedTypes;
+            List<Type> derivedTypes = TypeCache.GetTypesDerivedFrom(searchType).Where(IsValidImplementation).ToList();
+            if (IsValidImplementation(searchType) && !derivedTypes.Contains(searchType))
+            {
+                derivedTypes.Insert(0, searchType);
+            }
+            _typeCache[searchType] = derivedTypes;
             return derivedTypes;
         }
 
         private static bool IsValidImplementation(Type type)
         {
-            return !type.IsInterface && !type.IsAbstract && !type.ContainsGenericParameters;
+            return !type.IsInterface && !type.IsAbstract;
         }
     }
 }

@@ -8,8 +8,12 @@ public class UnitTest : MonoBehaviour
     [SerializeReferenceDropdown]
     [SerializeReference]
     public List<Condition<UnitTest>> ConditionsList = new List<Condition<UnitTest>>();
-    [SerializeReferenceDropdown]
+    [SerializeReferenceSelector]
     [SerializeReference]
-    public List<MonoBehaviour> BehaviourList = new List<MonoBehaviour>();
-    
+    public List<Condition<UnitTest>> ConditionsList2 = new List<Condition<UnitTest>>();
+
+    [SerializeReferenceSelector]
+    [SerializeReference]
+    public IState<UnitTest> State;
+
 }
