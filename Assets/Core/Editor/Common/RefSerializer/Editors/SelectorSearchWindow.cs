@@ -33,7 +33,6 @@ namespace Crystal.Common.Editor
             root.style.paddingTop = 8f;
             root.style.paddingBottom = 8f;
 
-            // 1. Верхняя панель управления
             VisualElement topPanel = new VisualElement();
             topPanel.style.flexDirection = FlexDirection.Row;
             topPanel.style.marginBottom = 6f;
@@ -45,13 +44,11 @@ namespace Crystal.Common.Editor
             scanButton.clicked += OnScanPressed;
             topPanel.Add(scanButton);
 
-            // 2. Область вывода результатов (Таблица со списком)
             Label listLabel = new Label("Broken Assets List:");
             listLabel.style.unityFontStyleAndWeight = FontStyle.Bold;
             listLabel.style.marginBottom = 2f;
             root.Add(listLabel);
 
-            // Настраиваем оптимизированный ListView с виртуализацией элементов
             _listView = new ListView
             {
                 makeItem = () => new Label(),
@@ -70,11 +67,9 @@ namespace Crystal.Common.Editor
             _listView.style.borderBottomColor = new Color(0.1f, 0.1f, 0.1f);
             _listView.style.marginBottom = 8f;
 
-            // Подписываемся на клик по строке списка
             _listView.selectionChanged += OnSelectionChanged;
             root.Add(_listView);
 
-            // 3. Нижняя панель исправления данных (Поля ввода)
             VisualElement fixPanel = new VisualElement();
             fixPanel.style.borderBottomWidth = 1f;
             fixPanel.style.borderBottomColor = new Color(0.2f, 0.2f, 0.2f);
@@ -85,7 +80,7 @@ namespace Crystal.Common.Editor
             root.Add(fixPanel);
 
             _oldClassField = new TextField("Missing Class Name:");
-            _oldClassField.SetEnabled(false); // Запрещаем ручной ввод сюда, имя подставится кликом из таблицы
+            _oldClassField.SetEnabled(false);
             fixPanel.Add(_oldClassField);
 
             _newClassField = new TextField("Target New Class Name:")
@@ -99,23 +94,18 @@ namespace Crystal.Common.Editor
             _fixButton.style.height = 22f;
             _fixButton.style.marginTop = 4f;
             _fixButton.clicked += OnFixPressed;
-            _fixButton.SetEnabled(false); // Кнопка заблокирована, пока объект не выбран
+            _fixButton.SetEnabled(false);
             fixPanel.Add(_fixButton);
         }
 
         private void OnScanPressed()
         {
-            // Запускаем Regex-сканирование файлов YAML на жестком диске через наш валидатор
             _brokenAssets = YamlValidator.ScanProjectForBrokenReferences();
-
-            // Обновляем данные в таблице
             _listView.itemsSource = _brokenAssets;
             _listView.Rebuild();
-
             _selectedResult = null;
             _oldClassField.value = string.Empty;
             _fixButton.SetEnabled(false);
-
             if (_brokenAssets.Count == 0)
             {
                 EditorUtility.DisplayDialog("Scan Completed", "No broken SerializeReference types found! Everything is clean.", "OK");
@@ -145,15 +135,11 @@ namespace Crystal.Common.Editor
             }
 
             var asset = _selectedResult.Value;
-
-            // Запускаем прямую текстовую перезапись строк YAML на диске
             bool success = YamlValidator.FixBrokenReference(asset.AssetPath, asset.MissingClassName, targetNewClass);
 
             if (success)
             {
                 EditorUtility.DisplayDialog("Success", $"Asset text-data repaired successfully!\nRefreshed: {System.IO.Path.GetFileName(asset.AssetPath)}", "OK");
-
-                // Сразу убираем исправленный элемент из таблицы
                 _brokenAssets.Remove(asset);
                 _listView.Rebuild();
                 _listView.ClearSelection();

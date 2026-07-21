@@ -5,7 +5,7 @@ using UnityEngine;
 
 public class UnitTest : MonoBehaviour
 {
-    [SerializeReferenceDropdown]
+    [SerializeReferenceSelector]
     [SerializeReference]
     public List<Condition<UnitTest>> ConditionsList = new List<Condition<UnitTest>>();
     [SerializeReferenceSelector]

@@ -55,10 +55,51 @@ namespace Crystal.Common.Editor
             }
         }
 
-        public static bool CanPaste()
+        public static bool CanPaste(Type baseType)
         {
             string buffer = EditorGUIUtility.systemCopyBuffer;
-            return !string.IsNullOrEmpty(buffer) && buffer.StartsWith(CopyBufferMarker);
+            if (string.IsNullOrEmpty(buffer) || !buffer.StartsWith(CopyBufferMarker))
+            {
+                return false;
+            }
+
+            try
+            {
+                string cleanBuffer = buffer.Substring(CopyBufferMarker.Length);
+                string[] parts = cleanBuffer.Split('|', 2);
+                if (parts.Length < 2) return false;
+                string typeName = parts[0];
+                Type copiedType = Type.GetType(typeName);
+                if (copiedType == null) return false;
+                if (!baseType.IsGenericType && !copiedType.IsGenericType)
+                {
+                    return baseType.IsAssignableFrom(copiedType);
+                }
+                Type openCopiedType = copiedType.IsGenericType ? copiedType.GetGenericTypeDefinition() : copiedType;
+                Type openBaseType = baseType.IsGenericType ? baseType.GetGenericTypeDefinition() : baseType;
+                if (openBaseType.IsAssignableFrom(openCopiedType)) return true;
+                if (openBaseType.IsInterface)
+                {
+                    foreach (Type interfaceType in openCopiedType.GetInterfaces())
+                    {
+                        Type checkInterface = interfaceType.IsGenericType ? interfaceType.GetGenericTypeDefinition() : interfaceType;
+                        if (checkInterface == openBaseType) return true;
+                    }
+                }
+                Type currentBase = openCopiedType.BaseType;
+                while (currentBase != null && currentBase != typeof(object))
+                {
+                    Type checkBase = currentBase.IsGenericType ? currentBase.GetGenericTypeDefinition() : currentBase;
+                    if (checkBase == openBaseType) return true;
+                    currentBase = currentBase.BaseType;
+                }
+                return false;
+            }
+            catch
+            {
+                return false;
+            }
         }
+
     }
 }

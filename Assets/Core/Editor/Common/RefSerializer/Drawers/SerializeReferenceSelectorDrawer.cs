@@ -161,7 +161,7 @@ namespace Crystal.Common.Editor
                 menu.AddDisabledItem(new GUIContent("Copy"));
             }
 
-            if (SelectorCopyPaste.CanPaste())
+            if (SelectorCopyPaste.CanPaste(_cachedBaseType))
             {
                 menu.AddItem(new GUIContent("Paste"), false, () =>
                 {
