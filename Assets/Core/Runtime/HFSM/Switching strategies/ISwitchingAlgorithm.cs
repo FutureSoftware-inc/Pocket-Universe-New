@@ -3,7 +3,7 @@ namespace Crystal.HFSM
     public interface ISwitchingAlgorithm<TContext> where TContext : class
     {
         IState<TContext> Current { get; }
-        void Initialize(TContext context, IStateSwitсher<TContext> switсher);
+        void Initialize(TContext context, IStateSwitcher<TContext> switсher);
         void Update();
         void FixedUpdate();
         void LateUpdate();

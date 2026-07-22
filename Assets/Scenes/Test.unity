@@ -152,9 +152,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UnitTest
   ConditionsList:
-  - rid: 7003737801801859350
-  ConditionsList2:
   - rid: -2
+  - rid: 7003737832036499558
+  TransitionsList:
   - rid: -2
   State:
     rid: -2
@@ -163,7 +163,7 @@ MonoBehaviour:
     RefIds:
     - rid: -2
       type: {class: , ns: , asm: }
-    - rid: 7003737801801859350
+    - rid: 7003737832036499558
       type: {class: 'BoolCondition`1[[UnitTest, Assembly-CSharp]]', ns: Crystal.HFSM, asm: Assembly-CSharp}
       data:
         _propertyName: Property name

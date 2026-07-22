@@ -6,7 +6,7 @@ namespace Crystal.HFSM
     public sealed class StackSwitchingAlgorithm<TContext> : ISwitchingAlgorithm<TContext> where TContext : class
     {
         private TContext _context;
-        private IStateSwitсher<TContext> _switcher;
+        private IStateSwitcher<TContext> _switcher;
 
         private readonly Stack<IState<TContext>> _stateStack = new();
         private readonly Dictionary<Type, IState<TContext>> _registry = new();
@@ -19,7 +19,7 @@ namespace Crystal.HFSM
             return this;
         }
 
-        public void Initialize(TContext context, IStateSwitсher<TContext> switcher)
+        public void Initialize(TContext context, IStateSwitcher<TContext> switcher)
         {
             _context = context;
             _switcher = switcher;

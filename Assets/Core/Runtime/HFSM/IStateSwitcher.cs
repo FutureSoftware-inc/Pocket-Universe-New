@@ -1,6 +1,6 @@
 namespace Crystal.HFSM
 {
-    public interface IStateSwitсher<TContext> where TContext : class
+    public interface IStateSwitcher<TContext> where TContext : class
     {
         void SwitchTo<TState>() where TState : IState<TContext>;
     }

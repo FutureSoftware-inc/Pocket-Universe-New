@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Crystal.HFSM
 {
-    public sealed class StateMachine<TContext> : IStateSwitсher<TContext> where TContext : class
+    public sealed class StateMachine<TContext> : IStateSwitcher<TContext> where TContext : class
     {
         private readonly TContext _context;
         private readonly ISwitchingAlgorithm<TContext> _algorithm;
