@@ -5,7 +5,7 @@ using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEngine;
 
-namespace Crystal.Common.Editor
+namespace CrystalEditor
 {
     public static class YamlValidator
     {

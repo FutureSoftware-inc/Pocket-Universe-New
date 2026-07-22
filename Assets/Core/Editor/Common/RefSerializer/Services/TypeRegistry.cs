@@ -2,9 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
-using UnityEngine;
 
-namespace Crystal.Common.Editor
+namespace CrystalEditor
 {
     public static class TypeRegistry
     {

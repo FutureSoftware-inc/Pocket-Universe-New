@@ -2,7 +2,7 @@ using System;
 using UnityEditor;
 using UnityEngine;
 
-namespace Crystal.Common.Editor
+namespace CrystalEditor
 {
     public static class SelectorCopyPaste
     {

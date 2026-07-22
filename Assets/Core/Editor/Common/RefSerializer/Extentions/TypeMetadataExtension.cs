@@ -1,6 +1,6 @@
 using System;
 
-namespace Crystal.Common.Editor
+namespace CrystalEditor
 {
     public abstract class TypeMetadataExtension
     {

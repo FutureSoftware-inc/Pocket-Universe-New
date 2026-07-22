@@ -4,7 +4,7 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace Crystal.Common.Editor
+namespace CrystalEditor
 {
     public sealed class SelectorSearchWindow : EditorWindow
     {

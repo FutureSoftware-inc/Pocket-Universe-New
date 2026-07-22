@@ -6,8 +6,9 @@ using UnityEditor.IMGUI.Controls;
 using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
+using CrystalEngine;
 
-namespace Crystal.Common.Editor
+namespace CrystalEditor
 {
     [CustomPropertyDrawer(typeof(SerializeReferenceSelectorAttribute))]
     public class SerializeReferenceSelectorDrawer : PropertyDrawer

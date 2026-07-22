@@ -1,7 +1,8 @@
 using System;
 using System.Linq;
+using CrystalEngine;
 
-namespace Crystal.Common.Editor
+namespace CrystalEditor
 {
     public sealed class PathMetadataExtension : TypeMetadataExtension
     {

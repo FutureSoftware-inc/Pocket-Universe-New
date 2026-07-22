@@ -1,11 +1,9 @@
-using Crystal.Common;
-using Crystal.Common.Editor;
-using System;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
+using CrystalEngine.HFSM;
 
-namespace Crystal.HFSM.Editor
+namespace CrystalEditor
 {
     public sealed class StateGraphEditorView : AssetEditorView
     {

@@ -3,8 +3,9 @@ using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
+using CrystalEngine;
 
-namespace Crystal.Common.Editor
+namespace CrystalEditor
 {
     [CustomPropertyDrawer(typeof(ReferenceProvider<>))]
     public sealed class ReferenceProviderPropertyDrawer : PropertyDrawer

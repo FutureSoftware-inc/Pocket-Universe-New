@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace Crystal.HFSM
+namespace CrystalEngine.HFSM
 {
     [Serializable]
     public sealed class BoolCondition<TContext> : Condition<TContext> where TContext : class, IBlackboardProvider

@@ -2,8 +2,9 @@ using System;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
+using CrystalEngine;
 
-namespace Crystal.Common.Editor
+namespace CrystalEditor
 {
     public sealed class IconMetadataExtension : TypeMetadataExtension
     {

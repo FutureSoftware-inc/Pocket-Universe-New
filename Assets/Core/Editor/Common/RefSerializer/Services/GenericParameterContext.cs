@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
-namespace Crystal.Common.Editor
+namespace CrystalEditor
 {
     public sealed class GenericParameterContext
     {

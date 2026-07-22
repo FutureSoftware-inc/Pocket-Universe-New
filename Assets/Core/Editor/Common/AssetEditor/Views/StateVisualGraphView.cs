@@ -1,9 +1,10 @@
-using Crystal.HFSM;
 using System.Collections.Generic;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine.UIElements;
+using CrystalEngine;
+using CrystalEngine.HFSM;
 
-namespace Crystal.Common.Editor
+namespace CrystalEditor
 {
     public sealed class StateVisualGraphView : GraphView
     {
@@ -19,7 +20,10 @@ namespace Crystal.Common.Editor
             Insert(0, grid);
             grid.StretchToParentSize();
 
+            style.position = Position.Relative;
             style.flexGrow = 1;
+            style.width = Length.Percent(100);
+            style.height = Length.Percent(100);
         }
 
         public void PopulateFromAsset(BehaviourGraphData asset)

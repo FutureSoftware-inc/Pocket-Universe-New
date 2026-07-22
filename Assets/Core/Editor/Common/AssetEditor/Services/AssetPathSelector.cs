@@ -1,7 +1,7 @@
 using System;
 using UnityEditor;
 
-namespace Crystal.Common.Editor
+namespace CrystalEditor
 {
     public static class AssetPathSelector
     {

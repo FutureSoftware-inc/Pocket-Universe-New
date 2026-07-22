@@ -1,9 +1,8 @@
-using System;
-using UnityEditor.Experimental.GraphView;
 using UnityEngine;
-using UnityEngine.UIElements;
+using UnityEditor.Experimental.GraphView;
+using CrystalEngine;
 
-namespace Crystal.Common.Editor
+namespace CrystalEditor
 {
     public class StateNode : Node
     {

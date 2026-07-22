@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
 
-namespace Crystal.Common.Editor
+namespace CrystalEditor
 {
     public static class DataMigrator
     {

@@ -4,7 +4,7 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace Crystal.Common.Editor
+namespace CrystalEditor
 {
     public class UniversalAssetEditor : EditorWindow
     {
@@ -24,7 +24,7 @@ namespace Crystal.Common.Editor
         private enum SubViewMode
         {
             Library,
-            CreateNew
+            Create
         }
 
         [MenuItem("Universe/Hub")]
@@ -103,14 +103,14 @@ namespace Crystal.Common.Editor
         {
             _modeButtonsContainer.Clear();
 
+            Button btnCreate = new Button(() => SetMode(SubViewMode.Create)) { text = "➕ Создать" };
             Button btnLibrary = new Button(() => SetMode(SubViewMode.Library)) { text = "📚 Библиотека" };
-            Button btnCreate = new Button(() => SetMode(SubViewMode.CreateNew)) { text = "➕ Создать новый" };
 
-            btnLibrary.style.flexGrow = 1;
             btnCreate.style.flexGrow = 1;
+            btnLibrary.style.flexGrow = 1;
 
-            _modeButtonsContainer.Add(btnLibrary);
             _modeButtonsContainer.Add(btnCreate);
+            _modeButtonsContainer.Add(btnLibrary);
         }
 
         private void SelectModule(EditorViewRegistry.ViewData viewData)
@@ -122,7 +122,7 @@ namespace Crystal.Common.Editor
             _currentActiveView.Initialize(this);
 
             _modeButtonsContainer.style.display = DisplayStyle.Flex;
-            _currentMode = SubViewMode.Library;
+            _currentMode = SubViewMode.Create;
 
             RefreshWorkspaceContent();
         }
@@ -190,7 +190,7 @@ namespace Crystal.Common.Editor
             _moduleContentContainer.Add(pathBar);
 
             // 4. Отрисовка контента в зависимости от выбранного режима в хабе
-            if (_currentMode == SubViewMode.CreateNew)
+            if (_currentMode == SubViewMode.Create)
             {
                 _moduleContentContainer.Add(_currentActiveView.Root);
                 _currentActiveView.OpenAsset(null);
@@ -224,7 +224,7 @@ namespace Crystal.Common.Editor
 
                 Button assetCard = new Button(() =>
                 {
-                    _currentMode = SubViewMode.CreateNew;
+                    _currentMode = SubViewMode.Create;
                     RefreshWorkspaceContent();
                     _moduleContentContainer.Add(_currentActiveView.Root);
                     _currentActiveView.OpenAsset(asset);

@@ -3,7 +3,7 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace Crystal.Common.Editor
+namespace CrystalEditor
 {
     public abstract class AssetEditorView
     {

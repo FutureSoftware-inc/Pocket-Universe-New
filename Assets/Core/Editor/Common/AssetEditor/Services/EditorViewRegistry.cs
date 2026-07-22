@@ -1,10 +1,8 @@
-using Crystal.HFSM;
-using Crystal.HFSM.Editor;
 using System;
 using System.Collections.Generic;
-using UnityEngine;
+using CrystalEngine.HFSM;
 
-namespace Crystal.Common.Editor
+namespace CrystalEditor
 {
     public class EditorViewRegistry
     {
