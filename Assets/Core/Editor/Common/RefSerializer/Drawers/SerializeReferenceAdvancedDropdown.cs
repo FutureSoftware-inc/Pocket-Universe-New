@@ -6,6 +6,13 @@ using UnityEngine;
 
 namespace CrystalEditor
 {
+    /// <summary>
+    /// Кастомное иерархическое выпадающее меню (AdvancedDropdown), отображающее список доступных подклассов и интерфейсов.
+    /// Автоматически извлекает метаданные типов (пути, иконки, подсказки, имена) и формирует из них древовидную структуру папок.
+    /// <br/><br/>
+    /// A custom hierarchical dropdown menu (AdvancedDropdown) that displays a list of available subclasses and interfaces.
+    /// Automatically extracts type metadata (paths, icons, tooltips, display names) to generate a tree-structured folder hierarchy.
+    /// </summary>
     public sealed class SerializeReferenceAdvancedDropdown : AdvancedDropdown
     {
         private readonly Type _baseType;
@@ -15,6 +22,16 @@ namespace CrystalEditor
         private readonly Dictionary<int, string> _idToTooltipMap = new();
         private int _currentIdCounter = 1;
 
+        /// <summary>
+        /// Инициализирует новый экземпляр выпадающего списка с указанием базового типа, списка реализаций и обратного вызова при выборе.
+        /// <br/><br/>
+        /// Initializes a new instance of the advanced dropdown with the specified base type, list of implementations, and selection callback.
+        /// </summary>
+        /// <param name="baseType">Базовый тип или интерфейс сериализуемого поля. / The base type or interface of the serializable field.</param>
+        /// <param name="types">Список всех доступных типов-реализаций для отображения. / The list of all available implementation types to display.</param>
+        /// <param name="onTypeSelected">Делегат, вызываемый при выборе элемента из списка. / The delegate invoked when an item is selected from the list.</param>
+        /// <param name="state">Текущее сериализуемое состояние окна выпадающего списка. / The current serialized state of the dropdown window.</param>
+        /// <exception cref="ArgumentNullException">Вызывается, если один из обязательных параметров равен null. / Thrown when one of the specified parameters is null.</exception>
         public SerializeReferenceAdvancedDropdown(Type baseType, IReadOnlyList<Type> types, Action<Type> onTypeSelected, AdvancedDropdownState state)
             : base(state)
         {
@@ -24,10 +41,17 @@ namespace CrystalEditor
             minimumSize = new Vector2(250f, 350f);
         }
 
+        /// <summary>
+        /// Строит корневой элемент дерева и наполняет выпадающий список дочерними элементами на основе метаданных из реестра типов.
+        /// <br/><br/>
+        /// Builds the root element of the tree and populates the dropdown menu with child items based on metadata from the type registry.
+        /// </summary>
+        /// <returns>Корневой элемент иерархии выпадающего списка. / The root item of the dropdown hierarchy.</returns>
         protected override AdvancedDropdownItem BuildRoot()
         {
             AdvancedDropdownItem root = new AdvancedDropdownItem("Select Type");
 
+            // Создаем и регистрируем пустой элемент для возможности сброса поля в null
             AdvancedDropdownItem nullItem = new AdvancedDropdownItem("Select (Empty)");
             root.AddChild(nullItem);
             _itemToTypeMap[nullItem] = null;
@@ -38,6 +62,7 @@ namespace CrystalEditor
 
             foreach (Type type in _types)
             {
+                // Извлекаем расширения метаданных через реестр типов
                 var pathMeta = TypeRegistry.GetExtension<PathMetadataExtension>(type, _baseType);
                 var nameMeta = TypeRegistry.GetExtension<DisplayNameMetadataExtension>(type, _baseType);
                 var iconMeta = TypeRegistry.GetExtension<IconMetadataExtension>(type, _baseType);
@@ -54,6 +79,7 @@ namespace CrystalEditor
                 string displayName = nameMeta?.DisplayName ?? type.Name;
                 string path = pathMeta?.Path;
 
+                // Если путь не задан (нет атрибута SubclassPath), добавляем элемент прямо в корень
                 if (string.IsNullOrEmpty(path))
                 {
                     AdvancedDropdownItem item = new AdvancedDropdownItem(displayName) { icon = icon, id = itemId };
@@ -64,6 +90,7 @@ namespace CrystalEditor
 
                 AdvancedDropdownItem currentParent = GetOrCreateFolderHierarchy(path, root, folderCache);
 
+                // Помечаем открытые дженерики, которые закроются автоматически на основе базового типа
                 if (type.IsGenericTypeDefinition && _baseType.IsGenericType)
                 {
                     displayName = $"{displayName} (Auto)";
@@ -76,19 +103,28 @@ namespace CrystalEditor
 
             return root;
         }
-
+        /// <summary>
+        /// Вызывается при выборе элемента пользователем. 
+        /// Обрабатывает извлечение типа, автоматическое закрытие дженериков под контекст и генерирует событие выбора.
+        /// <br/><br/>
+        /// Triggered when an item is selected by the user. 
+        /// Processes type extraction, automatic generic closure for the context, and invokes the selection event.
+        /// </summary>
+        /// <param name="item">Выбранный элемент выпадающего списка. / The selected dropdown item.</param>
         protected override void ItemSelected(AdvancedDropdownItem item)
         {
             if (!_itemToTypeMap.TryGetValue(item, out Type selectedType)) return;
 
             ShowTypeTooltip(item);
 
+            // Если выбран пустой элемент, сбрасываем ссылку в null
             if (selectedType == null)
             {
                 _onTypeSelected?.Invoke(null);
                 return;
             }
 
+            // Автоматически закрываем открытый generic-тип (например, MyNode<>) аргументами базового типа (например, IState<MyContext>)
             if (selectedType.IsGenericTypeDefinition && _baseType.IsGenericType)
             {
                 try
@@ -108,6 +144,11 @@ namespace CrystalEditor
             _onTypeSelected?.Invoke(selectedType);
         }
 
+        /// <summary>
+        /// Рекурсивно парсит переданную строку пути и строит иерархию папок в дереве выпадающего списка, используя кэш.
+        /// <br/><br/>
+        /// Recursively parses the provided path string and constructs a folder hierarchy within the dropdown tree using a cache.
+        /// </summary>
         private AdvancedDropdownItem GetOrCreateFolderHierarchy(string path, AdvancedDropdownItem root, Dictionary<string, AdvancedDropdownItem> folderCache)
         {
             string[] sections = path.Split('/');
@@ -133,6 +174,11 @@ namespace CrystalEditor
             return currentParent;
         }
 
+        /// <summary>
+        /// Находит текстовое описание подсказки по идентификатору элемента и выводит её в виде всплывающего уведомления Unity (Notification).
+        /// <br/><br/>
+        /// Resolves the tooltip text by the item ID and displays it as a floating Unity editor notification.
+        /// </summary>
         private void ShowTypeTooltip(AdvancedDropdownItem item)
         {
             if (item != null && _idToTooltipMap.TryGetValue(item.id, out string tooltipText))

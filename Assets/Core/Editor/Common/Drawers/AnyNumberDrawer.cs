@@ -6,6 +6,13 @@ using CrystalEngine;
 
 namespace CrystalEditor
 {
+    /// <summary>
+    /// Кастомный отрисовщик свойств (PropertyDrawer) для универсальной числовой структуры <see cref="AnyNumber"/>.
+    /// Использует UI Toolkit для динамического перестроения интерфейса инспектора в зависимости от выбранного типа числа.
+    /// <br/><br/>
+    /// A custom property drawer for the universal numeric structure <see cref="AnyNumber"/>.
+    /// Uses UI Toolkit to dynamically rebuild the inspector interface based on the selected numeric type.
+    /// </summary>
     [CustomPropertyDrawer(typeof(AnyNumber))]
     public class AnyNumberDrawer : PropertyDrawer
     {
@@ -23,6 +30,13 @@ namespace CrystalEditor
         internal const string VALUE_LABEL_TEXT = "Value";
         internal const string TYPE_LABEL_TEXT = "Type of numeric variable";
 
+        /// <summary>
+        /// Создает и настраивает визуальные элементы (UI Toolkit) для отображения структуры в инспекторе Unity.
+        /// <br/><br/>
+        /// Creates and configures visual elements (UI Toolkit) for displaying the structure in the Unity Inspector.
+        /// </summary>
+        /// <param name="property">Сериализованное свойство, представляющее структуру AnyNumber. / The serialized property representing the AnyNumber structure.</param>
+        /// <returns>Корневой визуальный элемент интерфейса свойства. / The root visual element of the property GUI.</returns>
         public override VisualElement CreatePropertyGUI(SerializedProperty property)
         {
             VisualElement root = new VisualElement();
@@ -50,6 +64,8 @@ namespace CrystalEditor
             root.Add(inputHolder);
 
             RebuildInterface(inputHolder, valueProps, (NumericType)typeProp.enumValueIndex);
+
+            // Отслеживаем изменение типа числовой переменной для очистки памяти и перерисовки ввода
             root.TrackPropertyValue(typeProp, (updatedProp) =>
             {
                 valueProps[9].doubleValue = default;
@@ -59,6 +75,16 @@ namespace CrystalEditor
             return root;
         }
 
+        /// <summary>
+        /// Перестраивает интерфейс ввода, создавая LongField или DoubleField в зависимости от выбранного числового типа,
+        /// а также настраивает валидацию и ограничение (Math.Clamp) вводимых данных под конкретные границы примитивов.
+        /// <br/><br/>
+        /// Rebuilds the input interface by creating a LongField or DoubleField depending on the selected numeric type,
+        /// and configures data validation and clamping (Math.Clamp) within specific primitive bounds.
+        /// </summary>
+        /// <param name="container">Контейнер, в который помещается актуальное поле ввода. / The container where the active input field is placed.</param>
+        /// <param name="valueProps">Массив всех числовых сериализованных полей структуры. / An array of all numeric serialized properties of the structure.</param>
+        /// <param name="currentType">Текущий выбранный числовой тип данных. / The currently selected numeric data type.</param>
         private void RebuildInterface(VisualElement container, SerializedProperty[] valueProps, NumericType currentType)
         {
             container.Clear();

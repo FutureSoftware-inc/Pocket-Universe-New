@@ -6,6 +6,13 @@ using UnityEngine.UIElements;
 
 namespace CrystalEditor
 {
+    /// <summary>
+    /// Окно редактора Unity (EditorWindow) для поиска и исправления поврежденных ссылок полиморфной сериализации.
+    /// Предоставляет визуальный графический интерфейс (UI Toolkit) для сканирования проекта и текстовой замены Missing-типов.
+    /// <br/><br/>
+    /// A Unity EditorWindow for locating and repairing broken polymorphic serialization references.
+    /// Provides a visual graphical interface (UI Toolkit) to scan the project and perform text replacement for missing types.
+    /// </summary>
     public sealed class SelectorSearchWindow : EditorWindow
     {
         private List<YamlValidator.BrokenAssetResult> _brokenAssets = new();
@@ -17,6 +24,11 @@ namespace CrystalEditor
 
         private YamlValidator.BrokenAssetResult? _selectedResult;
 
+        /// <summary>
+        /// Добавляет пункт в главное меню Unity "Tools" для открытия окна валидатора ссылок SerializeReference.
+        /// <br/><br/>
+        /// Adds a menu item to Unity's main "Tools" menu to open the SerializeReference validator window.
+        /// </summary>
         [MenuItem("Tools/Crystal/SerializeReference Validator")]
         public static void ShowWindow()
         {
@@ -25,6 +37,11 @@ namespace CrystalEditor
             window.minSize = new Vector2(500f, 400f);
         }
 
+        /// <summary>
+        /// Автоматически вызывается Unity при инициализации окна. Строит иерархию элементов интерфейса с помощью UI Toolkit.
+        /// <br/><br/>
+        /// Automatically invoked by Unity when the window initializes. Builds the UI Toolkit visual element hierarchy.
+        /// </summary>
         private void CreateGUI()
         {
             VisualElement root = rootVisualElement;
@@ -49,6 +66,7 @@ namespace CrystalEditor
             listLabel.style.marginBottom = 2f;
             root.Add(listLabel);
 
+            // Инициализируем оптимизированный список ListView для вывода найденных сломанных ассетов
             _listView = new ListView
             {
                 makeItem = () => new Label(),
@@ -89,7 +107,6 @@ namespace CrystalEditor
             };
             fixPanel.Add(_newClassField);
 
-
             _fixButton = new Button { text = "Fix Selected Asset" };
             _fixButton.style.height = 22f;
             _fixButton.style.marginTop = 4f;
@@ -97,7 +114,11 @@ namespace CrystalEditor
             _fixButton.SetEnabled(false);
             fixPanel.Add(_fixButton);
         }
-
+        /// <summary>
+        /// Обработчик нажатия кнопки сканирования. Запускает YAML-валидатор, обновляет источник данных для ListView и выводит диалоговое окно при успешной проверке.
+        /// <br/><br/>
+        /// Handles the scan button press. Invokes the YAML validator, updates the ListView items source, and displays a dialog window upon a successful clean scan.
+        /// </summary>
         private void OnScanPressed()
         {
             _brokenAssets = YamlValidator.ScanProjectForBrokenReferences();
@@ -106,12 +127,19 @@ namespace CrystalEditor
             _selectedResult = null;
             _oldClassField.value = string.Empty;
             _fixButton.SetEnabled(false);
+
             if (_brokenAssets.Count == 0)
             {
                 EditorUtility.DisplayDialog("Scan Completed", "No broken SerializeReference types found! Everything is clean.", "OK");
             }
         }
 
+        /// <summary>
+        /// Обработчик изменения выделения строки в списке. Фиксирует выбранную запись и заполняет текстовое поле имени отсутствующего класса.
+        /// <br/><br/>
+        /// Handles the list view selection change event. Captures the selected result and populates the text field with the missing class name.
+        /// </summary>
+        /// <param name="selectedItems">Перечисление выбранных пользователем объектов в элементе управления. / An enumerable of objects selected by the user in the control.</param>
         private void OnSelectionChanged(IEnumerable<object> selectedItems)
         {
             var selected = _listView.selectedItem;
@@ -123,6 +151,11 @@ namespace CrystalEditor
             }
         }
 
+        /// <summary>
+        /// Обработчик нажатия кнопки исправления. Проверяет валидность введенного имени нового класса, запускает процесс текстовой замены в файле и обновляет интерфейс.
+        /// <br/><br/>
+        /// Handles the fix button press. Validates the entered new class name, triggers the raw text replacement process within the asset file, and refreshes the interface.
+        /// </summary>
         private void OnFixPressed()
         {
             if (_selectedResult == null) return;
