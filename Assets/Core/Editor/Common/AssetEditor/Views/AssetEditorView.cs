@@ -9,50 +9,24 @@ namespace CrystalEditor
     {
         protected EditorWindow HostWindow { get; private set; }
 
-        public VisualElement Root { get; private set; }
+        /// <summary>
+        /// Контейнер внутри главного окна, выделенный под это представление.
+        /// </summary>
+        protected VisualElement TargetContainer { get; private set; }
 
-        public void Initialize(EditorWindow hostWindow)
+        public void Initialize(EditorWindow hostWindow, VisualElement targetContainer)
         {
-            HostWindow = hostWindow;
-            Root = new VisualElement { name = "ViewRoot" };
-            Root.style.flexGrow = 1;
+            HostWindow = hostWindow ?? throw new ArgumentNullException(nameof(hostWindow));
+            TargetContainer = targetContainer ?? throw new ArgumentNullException(nameof(targetContainer));
+
+            // Очищаем правый экран от старых модулей перед отрисовкой своего UI
+            TargetContainer.Clear();
 
             OnInitialize();
         }
 
-        // Универсальный метод создания файлов, доступный для ВСЕХ наследников вида!
-        protected void CreateNewAsset<T>(string defaultFileName) where T : ScriptableObject
-        {
-            // 1. Через рефлексию или прямое приведение запрашиваем тип ассета у главного окна
-            Type assetType = typeof(T);
-
-            // 2. Вызываем наш готовый механизм получения пути, привязанный к типу ассета
-            string defaultFolder = AssetPathSelector.GetDefaultPathForAsset(assetType);
-
-            // 3. Открываем нативный проводник Unity сразу в нужной дефолтной папке
-            string path = EditorUtility.SaveFilePanelInProject(
-                $"Создать {defaultFileName}",
-                $"New{defaultFileName}",
-                "asset",
-                "Выберите место для сохранения ассета",
-                defaultFolder
-            );
-
-            if (string.IsNullOrEmpty(path)) return;
-
-            // 4. Генерируем инстанс ScriptableObject на лету и сохраняем в базу данных Unity
-            T newAsset = ScriptableObject.CreateInstance<T>();
-            AssetDatabase.CreateAsset(newAsset, path);
-            AssetDatabase.SaveAssets();
-
-            // 5. Автоматически скармливаем только что созданный ассет текущему открытому виду
-            OpenAsset(newAsset);
-        }
-
         protected abstract void OnInitialize();
-
         public abstract void OpenAsset(ScriptableObject asset);
-
         public abstract void OnDisable();
     }
 }

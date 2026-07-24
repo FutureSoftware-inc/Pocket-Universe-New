@@ -1,47 +1,23 @@
-using UnityEngine;
-using UnityEditor.Experimental.GraphView;
 using CrystalEngine;
+using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace CrystalEditor
 {
-    public class StateNode : Node
+    /// <summary>
+    /// Специализированный узел HFSM-состояния. Базовый нативный стиль наследуется от GridNode.
+    /// </summary>
+    public sealed class StateNode : GridNode
     {
-        private GraphNodeData _nodeData; // Теперь храним как легкую структуру данных
-        private Port _inputPort;
-        private Port _outputPort;
-        private object _targetContextData;
-
-        public GraphNodeData NodeData => _nodeData;
-        public string Guid => _nodeData.Guid;
-        public object TargetContextData => _targetContextData;
-
-        public StateNode(GraphNodeData nodeData)
+        public StateNode(GraphNodeData nodeData) : base(nodeData)
         {
-            _nodeData = nodeData;
-
-            viewDataKey = nodeData.Guid;
-            SetPosition(new Rect(nodeData.Position, Vector2.zero));
-            title = nodeData.NodeName;
-
-            CreatePorts();
-            RefreshExpandedState();
-            RefreshPorts();
+            // Кастомизируем цвет шапки конкретно под HFSM-стейты (делаем чуть темнее/светлее)
+            titleContainer.style.backgroundColor = new StyleColor(new Color(0.2f, 0.25f, 0.3f, 0.95f));
         }
 
-        public void BindContext(object contextData)
+        protected override void OnContextBound()
         {
-            _targetContextData = contextData;
-        }
-
-        private void CreatePorts()
-        {
-            _inputPort = InstantiatePort(Orientation.Horizontal, Direction.Input, Port.Capacity.Multi, typeof(bool));
-            _inputPort.portName = "Enter";
-            inputContainer.Add(_inputPort);
-
-            _outputPort = InstantiatePort(Orientation.Horizontal, Direction.Output, Port.Capacity.Multi, typeof(bool));
-            _outputPort.portName = "Transition";
-            outputContainer.Add(_outputPort);
+            // Сюда мы позже добавим вывод имени Action-скрипта в интерфейс ноды
         }
     }
 }

@@ -152,8 +152,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UnitTest
   ConditionsList:
+  - rid: 7003737841516413009
   - rid: -2
-  - rid: 7003737832036499558
   TransitionsList:
   - rid: -2
   State:
@@ -163,12 +163,24 @@ MonoBehaviour:
     RefIds:
     - rid: -2
       type: {class: , ns: , asm: }
-    - rid: 7003737832036499558
-      type: {class: 'BoolCondition`1[[UnitTest, Assembly-CSharp]]', ns: Crystal.HFSM, asm: Assembly-CSharp}
+    - rid: 7003737841516413009
+      type: {class: 'NumericCondition`1[[UnitTest, Assembly-CSharp]]', ns: CrystalEngine.HFSM, asm: Assembly-CSharp}
       data:
         _propertyName: Property name
         _invert: 0
-        _expectedValue: 0
+        _selectionValue:
+          _asByte: 0
+          _asSByte: 0
+          _asUInt16: 0
+          _asInt16: 0
+          _asUInt32: 0
+          _asInt32: 0
+          _asUInt64: 0
+          _asInt64: 0
+          _asSingle: 0
+          _asDouble: 0
+          _currentType: 0
+        _comparisonType: 0
 --- !u!114 &1807219703
 MonoBehaviour:
   m_ObjectHideFlags: 0

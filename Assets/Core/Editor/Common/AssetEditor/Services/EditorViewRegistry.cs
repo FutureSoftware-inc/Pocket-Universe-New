@@ -1,33 +1,17 @@
+using CrystalEngine.HFSM;
 using System;
 using System.Collections.Generic;
-using CrystalEngine.HFSM;
 
 namespace CrystalEditor
 {
-    public class EditorViewRegistry
+    public static class EditorViewRegistry
     {
-        private static readonly List<ViewData> RegisteredViews = new List<ViewData>();
-
-        public struct ViewData
-        {
-            public string DisplayName { get; }
-            public Type ViewType { get; }
-            public Type AssetType { get; }
-
-            public ViewData(string displayName, Type viewType, Type assetType)
-            {
-                DisplayName = displayName;
-                ViewType = viewType;
-                AssetType = assetType;
-            }
-        }
+        private static readonly List<ViewData> RegisteredViews = new();
 
         static EditorViewRegistry()
         {
             Register("State machine editor", typeof(StateGraphEditorView), typeof(BehaviourGraphData));
-            // Здесь мы регистрируем наши будущие модули. К примеру:
-            // Register("Машина состояний (HFSM)", typeof(HFSMGraphEditorView), typeof(HFSMStateMachineAsset));
-            // Register("Предметы", typeof(ItemsEditorView), typeof(ItemAsset));
+            //Register("State machine editor", typeof(StateGraphEditorView), typeof(BehaviourGraphData));
         }
 
         public static void Register(string displayName, Type viewType, Type assetType)
@@ -35,6 +19,6 @@ namespace CrystalEditor
             RegisteredViews.Add(new ViewData(displayName, viewType, assetType));
         }
 
-        public static List<ViewData> GetViews() => RegisteredViews;
+        public static IReadOnlyList<ViewData> GetViews() => RegisteredViews;
     }
 }
