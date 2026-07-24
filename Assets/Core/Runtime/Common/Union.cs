@@ -13,7 +13,7 @@ namespace CrystalEngine
     /// </summary>
     [Serializable]
     [StructLayout(LayoutKind.Explicit)]
-    public struct AnyNumber : IComparable
+    public struct Union : IComparable, IComparable<Union>, IEquatable<Union>
     {
         [FieldOffset(0)][SerializeField] private byte _asByte;
         [FieldOffset(0)][SerializeField] private sbyte _asSByte;
@@ -38,70 +38,70 @@ namespace CrystalEngine
         /// <br/><br/>
         /// Initializes the number with a byte value.
         /// </summary>
-        public AnyNumber(byte value) : this() { _asByte = value; _currentType = NumericType.Byte; }
+        public Union(byte value) : this() { _asByte = value; _currentType = NumericType.Byte; }
 
         /// <summary>
         /// Инициализирует число со значением типа sbyte.
         /// <br/><br/>
         /// Initializes the number with an sbyte value.
         /// </summary>
-        public AnyNumber(sbyte value) : this() { _asSByte = value; _currentType = NumericType.SByte; }
+        public Union(sbyte value) : this() { _asSByte = value; _currentType = NumericType.SByte; }
 
         /// <summary>
         /// Инициализирует число со значением типа ushort.
         /// <br/><br/>
         /// Initializes the number with a ushort value.
         /// </summary>
-        public AnyNumber(ushort value) : this() { _asUInt16 = value; _currentType = NumericType.UInt16; }
+        public Union(ushort value) : this() { _asUInt16 = value; _currentType = NumericType.UInt16; }
 
         /// <summary>
         /// Инициализирует число со значением типа short.
         /// <br/><br/>
         /// Initializes the number with a short value.
         /// </summary>
-        public AnyNumber(short value) : this() { _asInt16 = value; _currentType = NumericType.Int16; }
+        public Union(short value) : this() { _asInt16 = value; _currentType = NumericType.Int16; }
 
         /// <summary>
         /// Инициализирует число со значением типа uint.
         /// <br/><br/>
         /// Initializes the number with a uint value.
         /// </summary>
-        public AnyNumber(uint value) : this() { _asUInt32 = value; _currentType = NumericType.UInt32; }
+        public Union(uint value) : this() { _asUInt32 = value; _currentType = NumericType.UInt32; }
 
         /// <summary>
         /// Инициализирует число со значением типа int.
         /// <br/><br/>
         /// Initializes the number with an int value.
         /// </summary>
-        public AnyNumber(int value) : this() { _asInt32 = value; _currentType = NumericType.Int32; }
+        public Union(int value) : this() { _asInt32 = value; _currentType = NumericType.Int32; }
 
         /// <summary>
         /// Инициализирует число со значением типа ulong.
         /// <br/><br/>
         /// Initializes the number with a ulong value.
         /// </summary>
-        public AnyNumber(ulong value) : this() { _asUInt64 = value; _currentType = NumericType.UInt64; }
+        public Union(ulong value) : this() { _asUInt64 = value; _currentType = NumericType.UInt64; }
 
         /// <summary>
         /// Инициализирует число со значением типа long.
         /// <br/><br/>
         /// Initializes the number with a long value.
         /// </summary>
-        public AnyNumber(long value) : this() { _asInt64 = value; _currentType = NumericType.Int64; }
+        public Union(long value) : this() { _asInt64 = value; _currentType = NumericType.Int64; }
 
         /// <summary>
         /// Инициализирует число со значением типа float.
         /// <br/><br/>
         /// Initializes the number with a float value.
         /// </summary>
-        public AnyNumber(float value) : this() { _asSingle = value; _currentType = NumericType.Single; }
+        public Union(float value) : this() { _asSingle = value; _currentType = NumericType.Single; }
 
         /// <summary>
         /// Инициализирует число со значением типа double.
         /// <br/><br/>
         /// Initializes the number with a double value.
         /// </summary>
-        public AnyNumber(double value) : this() { _asDouble = value; _currentType = NumericType.Double; }
+        public Union(double value) : this() { _asDouble = value; _currentType = NumericType.Double; }
 
         /// <summary>
         /// Возвращает текущий тип данных, сохраненный в структуре.
@@ -157,10 +157,35 @@ namespace CrystalEngine
         /// </summary>
         public int CompareTo(object obj)
         {
-            object rawRight = obj is AnyNumber any ? any.Value : obj;
-            double left = Convert.ToDouble(Value);
-            double right = Convert.ToDouble(rawRight);
-            return left.CompareTo(right);
+            if (obj == null) return 1;
+
+            if (obj is Union other) return CompareTo(other);
+
+            try
+            {
+                double left = ToDouble();
+                double right = Convert.ToDouble(obj);
+                return left.CompareTo(right);
+            }
+            catch (Exception)
+            {
+                throw new ArgumentException($"[AnyNumber] Cannot compare AnyNumber with type {obj.GetType().Name}");
+            }
+        }
+        public int CompareTo(Union other)
+        {
+            if (_currentType <= NumericType.UInt64 && other._currentType <= NumericType.UInt64)
+            {
+                // Для беззнаковых больших чисел (UInt64) делаем безопасное сравнение
+                if (_currentType == NumericType.UInt64 || other._currentType == NumericType.UInt64)
+                {
+                    return AsULong().CompareTo(other.AsULong());
+                }
+                return AsLong().CompareTo(other.AsLong());
+            }
+
+            // Если хотя бы одно число с плавающей точкой (float/double), сравниваем через double
+            return AsDouble().CompareTo(other.AsDouble());
         }
 
         /// <summary>
@@ -170,11 +195,16 @@ namespace CrystalEngine
         /// </summary>
         public override bool Equals(object obj)
         {
-            if (obj is AnyNumber other && this == other)
+            if (obj is Union other && this == other)
             {
                 return true;
             }
             return false;
+        }
+
+        public bool Equals(Union other)
+        {
+            throw new NotImplementedException();
         }
 
         /// <summary>
@@ -197,68 +227,86 @@ namespace CrystalEngine
             return Convert.ToDouble(Value).ToString();
         }
 
-        public static implicit operator AnyNumber(sbyte value) => new AnyNumber(value);
-        public static implicit operator AnyNumber(byte value) => new AnyNumber(value);
-        public static implicit operator AnyNumber(ushort value) => new AnyNumber(value);
-        public static implicit operator AnyNumber(short value) => new AnyNumber(value);
-        public static implicit operator AnyNumber(uint value) => new AnyNumber(value);
-        public static implicit operator AnyNumber(int value) => new AnyNumber(value);
-        public static implicit operator AnyNumber(ulong value) => new AnyNumber(value);
-        public static implicit operator AnyNumber(long value) => new AnyNumber(value);
-        public static implicit operator AnyNumber(float value) => new AnyNumber(value);
-        public static implicit operator AnyNumber(double value) => new AnyNumber(value);
+        public static implicit operator Union(sbyte value) => new Union(value);
+        public static implicit operator Union(byte value) => new Union(value);
+        public static implicit operator Union(ushort value) => new Union(value);
+        public static implicit operator Union(short value) => new Union(value);
+        public static implicit operator Union(uint value) => new Union(value);
+        public static implicit operator Union(int value) => new Union(value);
+        public static implicit operator Union(ulong value) => new Union(value);
+        public static implicit operator Union(long value) => new Union(value);
+        public static implicit operator Union(float value) => new Union(value);
+        public static implicit operator Union(double value) => new Union(value);
 
-        public static bool operator ==(AnyNumber left, AnyNumber right)
+        public static explicit operator sbyte(Union number) => checked((sbyte)number.ToDouble());
+        public static explicit operator byte(Union number) => checked((byte)number.ToDouble());
+        public static explicit operator short(Union number) => checked((short)number.ToDouble());
+        public static explicit operator ushort(Union number) => checked((ushort)number.ToDouble());
+        public static explicit operator int(Union number) => checked((int)number.ToDouble());
+        public static explicit operator uint(Union number) => checked((uint)number.ToDouble());
+        public static explicit operator long(Union number) => checked((long)number.ToDouble());
+        public static explicit operator ulong(Union number) => checked((ulong)number.ToDouble());
+        public static explicit operator float(Union number) => (float)number.ToDouble();
+        public static explicit operator double(Union number) => number.ToDouble();
+
+        private double ToDouble()
+        {
+            if (_currentType >= NumericType.Single) return _asDouble;
+
+            return _currentType == NumericType.UInt64 ? _asUInt64 : _asInt64;
+        }
+
+        public static bool operator ==(Union left, Union right)
         {
             return left.CompareTo(right) == 0;
         }
 
-        public static bool operator !=(AnyNumber left, AnyNumber right)
+        public static bool operator !=(Union left, Union right)
         {
             return left.CompareTo(right) != 0;
         }
 
-        public static bool operator <(AnyNumber left, AnyNumber right)
+        public static bool operator <(Union left, Union right)
         {
             return left.CompareTo(right) < 0;
         }
 
-        public static bool operator >(AnyNumber left, AnyNumber right)
+        public static bool operator >(Union left, Union right)
         {
             return left.CompareTo(right) > 0;
         }
 
-        public static bool operator <=(AnyNumber left, AnyNumber right)
+        public static bool operator <=(Union left, Union right)
         {
             return left.CompareTo(right) <= 0;
         }
 
-        public static bool operator >=(AnyNumber left, AnyNumber right)
+        public static bool operator >=(Union left, Union right)
         {
             return left.CompareTo(right) >= 0;
         }
 
-        public static AnyNumber operator +(AnyNumber left, AnyNumber right)
+        public static Union operator +(Union left, Union right)
         {
-            double result = Convert.ToDouble(left.Value) + Convert.ToDouble(right.Value);
+            double result = left.ToDouble() + right.ToDouble();
             return CreatePromotedNubmer(left._currentType, right._currentType, result);
         }
 
-        public static AnyNumber operator -(AnyNumber left, AnyNumber right)
+        public static Union operator -(Union left, Union right)
         {
-            double result = Convert.ToDouble(left.Value) - Convert.ToDouble(right.Value);
+            double result = left.ToDouble() - right.ToDouble();
             return CreatePromotedNubmer(left._currentType, right._currentType, result);
         }
 
-        public static AnyNumber operator *(AnyNumber left, AnyNumber right)
+        public static Union operator *(Union left, Union right)
         {
-            double result = Convert.ToDouble(left.Value) * Convert.ToDouble(right.Value);
+            double result = left.ToDouble() * right.ToDouble();
             return CreatePromotedNubmer(left._currentType, right._currentType, result);
         }
 
-        public static AnyNumber operator /(AnyNumber left, AnyNumber right)
+        public static Union operator /(Union left, Union right)
         {
-            double result = Convert.ToDouble(left.Value) / Convert.ToDouble(right.Value);
+            double result = left.ToDouble() / right.ToDouble();
             return CreatePromotedNubmer(left._currentType, right._currentType, result);
         }
 
@@ -269,17 +317,17 @@ namespace CrystalEngine
         /// Creates a new AnyNumber instance with automatic promotion of the resulting data type based on the types of the source operands.
         /// If at least one operand was Double, the result is Double. If Single (float), the result is Single. Otherwise, it is Int64 (long).
         /// </summary>
-        private static AnyNumber CreatePromotedNubmer(NumericType type1, NumericType type2, double value)
+        private static Union CreatePromotedNubmer(NumericType type1, NumericType type2, double value)
         {
             if (type1 == NumericType.Double || type2 == NumericType.Double)
             {
-                return new AnyNumber(value);
+                return new Union(value);
             }
             if (type1 == NumericType.Single || type2 == NumericType.Single)
             {
-                return new AnyNumber((float)value);
+                return new Union((float)value);
             }
-            return new AnyNumber((long)value);
+            return new Union((long)value);
         }
     }
 }
