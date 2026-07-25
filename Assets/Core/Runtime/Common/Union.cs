@@ -1,5 +1,6 @@
 using System;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography;
 using UnityEngine;
 
 namespace CrystalEngine
@@ -13,7 +14,7 @@ namespace CrystalEngine
     /// </summary>
     [Serializable]
     [StructLayout(LayoutKind.Explicit)]
-    public struct Union : IComparable, IComparable<Union>, IEquatable<Union>
+    public struct Union : IComparable, IComparable<Union>, IEquatable<Union>, IConvertible
     {
         [FieldOffset(0)][SerializeField] private byte _asByte;
         [FieldOffset(0)][SerializeField] private sbyte _asSByte;
@@ -155,15 +156,43 @@ namespace CrystalEngine
         /// <br/><br/>
         /// Compares the current numeric value with another object by converting both to double.
         /// </summary>
+        /// <summary>
+        /// Сравнивает текущее числовое значение с другим объектом. 
+        /// Исключает упаковку, если передан AnyNumber, и сохраняет точность для целых чисел.
+        /// </summary>
         public int CompareTo(object obj)
         {
+            // По спецификации .NET любое значение больше null
             if (obj == null) return 1;
 
-            if (obj is Union other) return CompareTo(other);
+            // Если передан AnyNumber, вызываем быстрый метод без упаковки и потери точности
+            if (obj is Union other)
+            {
+                return CompareTo(other);
+            }
 
+            // Если передан примитивный тип, пробуем сравнить его без конвертации в double,
+            // чтобы не потерять точность больших целых чисел (long/ulong).
             try
             {
-                double left = ToDouble();
+                // Преобразуем примитив в AnyNumber (неявные операторы это позволяют)
+                // и вызываем безопасное сравнение
+                switch (obj)
+                {
+                    case int i: return CompareTo((Union)i);
+                    case long l: return CompareTo((Union)l);
+                    case float f: return CompareTo((Union)f);
+                    case double d: return CompareTo((Union)d);
+                    case byte b: return CompareTo((Union)b);
+                    case sbyte sb: return CompareTo((Union)sb);
+                    case short s: return CompareTo((Union)s);
+                    case ushort us: return CompareTo((Union)us);
+                    case uint ui: return CompareTo((Union)ui);
+                    case ulong ul: return CompareTo((Union)ul);
+                }
+
+                // Для редких типов (например, decimal или кастомных IConvertible) откатываемся на double
+                double left = AsDouble();
                 double right = Convert.ToDouble(obj);
                 return left.CompareTo(right);
             }
@@ -172,20 +201,18 @@ namespace CrystalEngine
                 throw new ArgumentException($"[AnyNumber] Cannot compare AnyNumber with type {obj.GetType().Name}");
             }
         }
+
         public int CompareTo(Union other)
         {
-            if (_currentType <= NumericType.UInt64 && other._currentType <= NumericType.UInt64)
+            bool thisIsInt = IsIntegralType(_currentType);
+            bool otherIsInt = IsIntegralType(other._currentType);
+            if (thisIsInt && otherIsInt)
             {
-                // Для беззнаковых больших чисел (UInt64) делаем безопасное сравнение
-                if (_currentType == NumericType.UInt64 || other._currentType == NumericType.UInt64)
-                {
-                    return AsULong().CompareTo(other.AsULong());
-                }
-                return AsLong().CompareTo(other.AsLong());
+                return CompareIntegrals(this, other);
             }
-
-            // Если хотя бы одно число с плавающей точкой (float/double), сравниваем через double
-            return AsDouble().CompareTo(other.AsDouble());
+            double left = AsDouble();
+            double right = other.AsDouble();
+            return left.CompareTo(right);
         }
 
         /// <summary>
@@ -195,16 +222,46 @@ namespace CrystalEngine
         /// </summary>
         public override bool Equals(object obj)
         {
-            if (obj is Union other && this == other)
+            if (obj is Union other)
             {
-                return true;
+                return Equals(other);
+            }
+            switch (obj)
+            {
+                case int i: return Equals((Union)i);
+                case long l: return Equals((Union)l);
+                case float f: return Equals((Union)f);
+                case double d: return Equals((Union)d);
+                case byte b: return Equals((Union)b);
+                case sbyte sb: return Equals((Union)sb);
+                case short s: return Equals((Union)s);
+                case ushort us: return Equals((Union)us);
+                case uint ui: return Equals((Union)ui);
+                case ulong ul: return Equals((Union)ul);
             }
             return false;
         }
 
         public bool Equals(Union other)
         {
-            throw new NotImplementedException();
+            if (_currentType != other._currentType)
+            {
+                return CompareTo(other) == 0;
+            }
+            return _currentType switch
+            {
+                NumericType.Byte => _asByte == other._asByte,
+                NumericType.SByte => _asSByte == other._asSByte,
+                NumericType.UInt16 => _asUInt16 == other._asUInt16,
+                NumericType.Int16 => _asInt16 == other._asInt16,
+                NumericType.UInt32 => _asUInt32 == other._asUInt32,
+                NumericType.Int32 => _asInt32 == other._asInt32,
+                NumericType.UInt64 => _asUInt64 == other._asUInt64,
+                NumericType.Int64 => _asInt64 == other._asInt64,
+                NumericType.Single => _asSingle.Equals(other._asSingle),
+                NumericType.Double => _asDouble.Equals(other._asDouble),
+                _ => false
+            };
         }
 
         /// <summary>
@@ -238,23 +295,169 @@ namespace CrystalEngine
         public static implicit operator Union(float value) => new Union(value);
         public static implicit operator Union(double value) => new Union(value);
 
-        public static explicit operator sbyte(Union number) => checked((sbyte)number.ToDouble());
-        public static explicit operator byte(Union number) => checked((byte)number.ToDouble());
-        public static explicit operator short(Union number) => checked((short)number.ToDouble());
-        public static explicit operator ushort(Union number) => checked((ushort)number.ToDouble());
-        public static explicit operator int(Union number) => checked((int)number.ToDouble());
-        public static explicit operator uint(Union number) => checked((uint)number.ToDouble());
-        public static explicit operator long(Union number) => checked((long)number.ToDouble());
-        public static explicit operator ulong(Union number) => checked((ulong)number.ToDouble());
-        public static explicit operator float(Union number) => (float)number.ToDouble();
-        public static explicit operator double(Union number) => number.ToDouble();
-
-        private double ToDouble()
+        public static explicit operator sbyte(Union number)
         {
-            if (_currentType >= NumericType.Single) return _asDouble;
-
-            return _currentType == NumericType.UInt64 ? _asUInt64 : _asInt64;
+            return number._currentType switch
+            {
+                NumericType.SByte => number._asSByte,
+                NumericType.Byte => checked((sbyte)number._asByte),
+                NumericType.Int16 => checked((sbyte)number._asInt16),
+                NumericType.UInt16 => checked((sbyte)number._asUInt16),
+                NumericType.Int32 => checked((sbyte)number._asInt32),
+                NumericType.UInt32 => checked((sbyte)number._asUInt32),
+                NumericType.Int64 => checked((sbyte)number._asInt64),
+                NumericType.UInt64 => checked((sbyte)number._asUInt64),
+                NumericType.Single => checked((sbyte)number._asSingle),
+                NumericType.Double => checked((sbyte)number._asDouble),
+                _ => 0
+            };
         }
+
+        public static explicit operator byte(Union number)
+        {
+            return number._currentType switch
+            {
+                NumericType.Byte => number._asByte,
+                NumericType.SByte => checked((byte)number._asSByte),
+                NumericType.Int16 => checked((byte)number._asInt16),
+                NumericType.UInt16 => checked((byte)number._asUInt16),
+                NumericType.Int32 => checked((byte)number._asInt32),
+                NumericType.UInt32 => checked((byte)number._asUInt32),
+                NumericType.Int64 => checked((byte)number._asInt64),
+                NumericType.UInt64 => checked((byte)number._asUInt64),
+                NumericType.Single => checked((byte)number._asSingle),
+                NumericType.Double => checked((byte)number._asDouble),
+                _ => 0
+            };
+        }
+
+        public static explicit operator short(Union number)
+        {
+            return number._currentType switch
+            {
+                NumericType.Int16 => number._asInt16,
+                NumericType.SByte => number._asSByte,
+                NumericType.Byte => number._asByte,
+                NumericType.UInt16 => checked((short)number._asUInt16),
+                NumericType.Int32 => checked((short)number._asInt32),
+                NumericType.UInt32 => checked((short)number._asUInt32),
+                NumericType.Int64 => checked((short)number._asInt64),
+                NumericType.UInt64 => checked((short)number._asUInt64),
+                NumericType.Single => checked((short)number._asSingle),
+                NumericType.Double => checked((short)number._asDouble),
+                _ => 0
+            };
+        }
+
+        public static explicit operator ushort(Union number)
+        {
+            return number._currentType switch
+            {
+                NumericType.UInt16 => number._asUInt16,
+                NumericType.Byte => number._asByte,
+                NumericType.SByte => checked((ushort)number._asSByte),
+                NumericType.Int16 => checked((ushort)number._asInt16),
+                NumericType.Int32 => checked((ushort)number._asInt32),
+                NumericType.UInt32 => checked((ushort)number._asUInt32),
+                NumericType.Int64 => checked((ushort)number._asInt64),
+                NumericType.UInt64 => checked((ushort)number._asUInt64),
+                NumericType.Single => checked((ushort)number._asSingle),
+                NumericType.Double => checked((ushort)number._asDouble),
+                _ => 0
+            };
+        }
+
+        public static explicit operator int(Union number)
+        {
+            return number._currentType switch
+            {
+                NumericType.Int32 => number._asInt32,
+                NumericType.SByte => number._asSByte,
+                NumericType.Byte => number._asByte,
+                NumericType.Int16 => number._asInt16,
+                NumericType.UInt16 => number._asUInt16,
+                NumericType.UInt32 => checked((int)number._asUInt32),
+                NumericType.Int64 => checked((int)number._asInt64),
+                NumericType.UInt64 => checked((int)number._asUInt64),
+                NumericType.Single => checked((int)number._asSingle),
+                NumericType.Double => checked((int)number._asDouble),
+                _ => 0
+            };
+        }
+
+        public static explicit operator uint(Union number)
+        {
+            return number._currentType switch
+            {
+                NumericType.UInt32 => number._asUInt32,
+                NumericType.Byte => number._asByte,
+                NumericType.UInt16 => number._asUInt16,
+                NumericType.SByte => checked((uint)number._asSByte),
+                NumericType.Int16 => checked((uint)number._asInt16),
+                NumericType.Int32 => checked((uint)number._asInt32),
+                NumericType.Int64 => checked((uint)number._asInt64),
+                NumericType.UInt64 => checked((uint)number._asUInt64),
+                NumericType.Single => checked((uint)number._asSingle),
+                NumericType.Double => checked((uint)number._asDouble),
+                _ => 0
+            };
+        }
+
+        public static explicit operator long(Union number)
+        {
+            return number._currentType switch
+            {
+                NumericType.Int64 => number._asInt64,
+                NumericType.SByte => number._asSByte,
+                NumericType.Byte => number._asByte,
+                NumericType.Int16 => number._asInt16,
+                NumericType.UInt16 => number._asUInt16,
+                NumericType.Int32 => number._asInt32,
+                NumericType.UInt32 => number._asUInt32,
+                NumericType.UInt64 => checked((long)number._asUInt64),
+                NumericType.Single => checked((long)number._asSingle),
+                NumericType.Double => checked((long)number._asDouble),
+                _ => 0
+            };
+        }
+
+        public static explicit operator ulong(Union number)
+        {
+            return number._currentType switch
+            {
+                NumericType.UInt64 => number._asUInt64,
+                NumericType.Byte => number._asByte,
+                NumericType.UInt16 => number._asUInt16,
+                NumericType.UInt32 => number._asUInt32,
+                NumericType.SByte => checked((ulong)number._asSByte),
+                NumericType.Int16 => checked((ulong)number._asInt16),
+                NumericType.Int32 => checked((ulong)number._asInt32),
+                NumericType.Int64 => checked((ulong)number._asInt64),
+                NumericType.Single => checked((ulong)number._asSingle),
+                NumericType.Double => checked((ulong)number._asDouble),
+                _ => 0
+            };
+        }
+
+        public static explicit operator float(Union number)
+        {
+            return number._currentType switch
+            {
+                NumericType.Single => number._asSingle,
+                NumericType.SByte => number._asSByte,
+                NumericType.Byte => number._asByte,
+                NumericType.Int16 => number._asInt16,
+                NumericType.UInt16 => number._asUInt16,
+                NumericType.Int32 => number._asInt32,
+                NumericType.UInt32 => number._asUInt32,
+                NumericType.Int64 => number._asInt64,
+                NumericType.UInt64 => number._asUInt64,
+                NumericType.Double => (float)number._asDouble,
+                _ => 0f
+            };
+        }
+
+        public static explicit operator double(Union number) => number.AsDouble();
 
         public static bool operator ==(Union left, Union right)
         {
@@ -288,46 +491,303 @@ namespace CrystalEngine
 
         public static Union operator +(Union left, Union right)
         {
-            double result = left.ToDouble() + right.ToDouble();
-            return CreatePromotedNubmer(left._currentType, right._currentType, result);
+            bool leftIsInt = IsIntegralType(left._currentType);
+            bool rightIsInt = IsIntegralType(right._currentType);
+            if (leftIsInt && rightIsInt)
+            {
+                bool leftSigned = IsSigned(left._currentType);
+                bool rightSigned = IsSigned(right._currentType);
+                if (!leftSigned && !rightSigned)
+                {
+                    return new Union(left.AsUInt64() + right.AsUInt64());
+                }
+                if (leftSigned && rightSigned)
+                {
+                    return new Union(left.AsInt64() + right.AsInt64());
+                }
+                long l = left.AsInt64();
+                long r = right.AsInt64();
+                return new Union(l + r);
+            }
+            if (left._currentType == NumericType.Double || right._currentType == NumericType.Double)
+            {
+                return new Union(left.AsDouble() + right.AsDouble());
+            }
+            return new Union((float)left.AsDouble() + (float)right.AsDouble());
         }
 
         public static Union operator -(Union left, Union right)
         {
-            double result = left.ToDouble() - right.ToDouble();
-            return CreatePromotedNubmer(left._currentType, right._currentType, result);
+            bool leftIsInt = IsIntegralType(left._currentType);
+            bool rightIsInt = IsIntegralType(right._currentType);
+            if (leftIsInt && rightIsInt)
+            {
+                bool leftSigned = IsSigned(left._currentType);
+                bool rightSigned = IsSigned(right._currentType);
+
+                if (!leftSigned && !rightSigned)
+                {
+                    ulong l = left.AsUInt64();
+                    ulong r = right.AsUInt64();
+                    if (l >= r) return new Union(l - r);
+                    return new Union((long)l - (long)r); // Результат стал отрицательным
+                }
+                return new Union(left.AsInt64() - right.AsInt64());
+            }
+            if (left._currentType == NumericType.Double || right._currentType == NumericType.Double)
+            {
+                return new Union(left.AsDouble() - right.AsDouble());
+            }
+            return new Union((float)left.AsDouble() - (float)right.AsDouble());
         }
 
         public static Union operator *(Union left, Union right)
         {
-            double result = left.ToDouble() * right.ToDouble();
-            return CreatePromotedNubmer(left._currentType, right._currentType, result);
+            bool leftIsInt = IsIntegralType(left._currentType);
+            bool rightIsInt = IsIntegralType(right._currentType);
+            if (leftIsInt && rightIsInt)
+            {
+                bool leftSigned = IsSigned(left._currentType);
+                bool rightSigned = IsSigned(right._currentType);
+                if (!leftSigned && !rightSigned)
+                {
+                    return new Union(left.AsUInt64() * right.AsUInt64());
+                }
+                return new Union(left.AsInt64() * right.AsInt64());
+            }
+            if (left._currentType == NumericType.Double || right._currentType == NumericType.Double)
+            {
+                return new Union(left.AsDouble() * right.AsDouble());
+            }
+            return new Union((float)left.AsDouble() * (float)right.AsDouble());
         }
 
         public static Union operator /(Union left, Union right)
         {
-            double result = left.ToDouble() / right.ToDouble();
-            return CreatePromotedNubmer(left._currentType, right._currentType, result);
+            bool leftIsInt = IsIntegralType(left._currentType);
+            bool rightIsInt = IsIntegralType(right._currentType);
+            if (leftIsInt && rightIsInt)
+            {
+                bool leftSigned = IsSigned(left._currentType);
+                bool rightSigned = IsSigned(right._currentType);
+                if (!leftSigned && !rightSigned)
+                {
+                    ulong r = right.AsUInt64();
+                    if (r == 0) throw new DivideByZeroException();
+                    return new Union(left.AsUInt64() / r);
+                }
+                long rs = right.AsInt64();
+                if (rs == 0) throw new DivideByZeroException();
+                return new Union(left.AsInt64() / rs);
+            }
+            if (left._currentType == NumericType.Double || right._currentType == NumericType.Double)
+            {
+                return new Union(left.AsDouble() / right.AsDouble());
+            }
+            return new Union((float)left.AsDouble() / (float)right.AsDouble());
         }
 
-        /// <summary>
-        /// Создает новый экземпляр AnyNumber с автоматическим повышением результирующего типа данных на основе типов исходных операндов.
-        /// Если хотя бы один операнд был Double, результат будет Double. Если Single (float) — результат Single. В остальных случаях — Int64 (long).
-        /// <br/><br/>
-        /// Creates a new AnyNumber instance with automatic promotion of the resulting data type based on the types of the source operands.
-        /// If at least one operand was Double, the result is Double. If Single (float), the result is Single. Otherwise, it is Int64 (long).
-        /// </summary>
-        private static Union CreatePromotedNubmer(NumericType type1, NumericType type2, double value)
+        #region IConvertible Implementation
+
+        #region IConvertible Explicit Implementation
+
+        TypeCode IConvertible.GetTypeCode()
         {
-            if (type1 == NumericType.Double || type2 == NumericType.Double)
+            return _currentType switch
             {
-                return new Union(value);
-            }
-            if (type1 == NumericType.Single || type2 == NumericType.Single)
+                NumericType.Byte => TypeCode.Byte,
+                NumericType.SByte => TypeCode.SByte,
+                NumericType.Int16 => TypeCode.Int16,
+                NumericType.UInt16 => TypeCode.UInt16,
+                NumericType.Int32 => TypeCode.Int32,
+                NumericType.UInt32 => TypeCode.UInt32,
+                NumericType.Int64 => TypeCode.Int64,
+                NumericType.UInt64 => TypeCode.UInt64,
+                NumericType.Single => TypeCode.Single,
+                NumericType.Double => TypeCode.Double,
+                _ => TypeCode.Object
+            };
+        }
+
+        bool IConvertible.ToBoolean(IFormatProvider provider)
+        {
+            return _currentType switch
             {
-                return new Union((float)value);
+                NumericType.Byte => _asByte != 0,
+                NumericType.SByte => _asSByte != 0,
+                NumericType.Int16 => _asInt16 != 0,
+                NumericType.UInt16 => _asUInt16 != 0,
+                NumericType.Int32 => _asInt32 != 0,
+                NumericType.UInt32 => _asUInt32 != 0,
+                NumericType.Int64 => _asInt64 != 0,
+                NumericType.UInt64 => _asUInt64 != 0,
+                NumericType.Single => _asSingle != 0f,
+                NumericType.Double => _asDouble != 0.0,
+                _ => false
+            };
+        }
+
+        byte IConvertible.ToByte(IFormatProvider provider) => (byte)this;
+
+        sbyte IConvertible.ToSByte(IFormatProvider provider) => (sbyte)this;
+
+        short IConvertible.ToInt16(IFormatProvider provider) => (short)this;
+
+        ushort IConvertible.ToUInt16(IFormatProvider provider) => (ushort)this;
+
+        int IConvertible.ToInt32(IFormatProvider provider) => (int)this;
+
+        uint IConvertible.ToUInt32(IFormatProvider provider) => (uint)this;
+
+        long IConvertible.ToInt64(IFormatProvider provider) => (long)this;
+
+        ulong IConvertible.ToUInt64(IFormatProvider provider) => (ulong)this;
+
+        float IConvertible.ToSingle(IFormatProvider provider) => (float)this;
+
+        double IConvertible.ToDouble(IFormatProvider provider) => (double)this;
+
+        decimal IConvertible.ToDecimal(IFormatProvider provider)
+        {
+            return _currentType switch
+            {
+                NumericType.Byte => _asByte,
+                NumericType.SByte => _asSByte,
+                NumericType.Int16 => _asInt16,
+                NumericType.UInt16 => _asUInt16,
+                NumericType.Int32 => _asInt32,
+                NumericType.UInt32 => _asUInt32,
+                NumericType.Int64 => _asInt64,
+                NumericType.UInt64 => _asUInt64,
+                NumericType.Single => (decimal)_asSingle,
+                NumericType.Double => (decimal)_asDouble,
+                _ => 0m
+            };
+        }
+
+        char IConvertible.ToChar(IFormatProvider provider)
+        {
+            return checked((char)((IConvertible)this).ToInt32(provider));
+        }
+
+        DateTime IConvertible.ToDateTime(IFormatProvider provider)
+        {
+            throw new InvalidCastException("[AnyNumber] Invalid cast from AnyNumber to DateTime");
+        }
+
+        string IConvertible.ToString(IFormatProvider provider)
+        {
+            return _currentType switch
+            {
+                NumericType.Byte => _asByte.ToString(provider),
+                NumericType.SByte => _asSByte.ToString(provider),
+                NumericType.Int16 => _asInt16.ToString(provider),
+                NumericType.UInt16 => _asUInt16.ToString(provider),
+                NumericType.Int32 => _asInt32.ToString(provider),
+                NumericType.UInt32 => _asUInt32.ToString(provider),
+                NumericType.Int64 => _asInt64.ToString(provider),
+                NumericType.UInt64 => _asUInt64.ToString(provider),
+                NumericType.Single => _asSingle.ToString(provider),
+                NumericType.Double => _asDouble.ToString(provider),
+                _ => string.Empty
+            };
+        }
+
+        object IConvertible.ToType(Type conversionType, IFormatProvider provider)
+        {
+            if (conversionType == typeof(Union)) return this;
+            return Convert.ChangeType(Value, conversionType, provider);
+        }
+
+        #endregion
+
+
+        #endregion
+
+        private static bool IsIntegralType(NumericType type)
+        {
+            return type != NumericType.Single && type != NumericType.Double;
+        }
+
+        private double AsDouble()
+        {
+            return _currentType switch
+            {
+                NumericType.Byte => _asByte,
+                NumericType.SByte => _asSByte,
+                NumericType.UInt16 => _asUInt16,
+                NumericType.Int16 => _asInt16,
+                NumericType.UInt32 => _asUInt32,
+                NumericType.Int32 => _asInt32,
+                NumericType.UInt64 => _asUInt64,
+                NumericType.Int64 => _asInt64,
+                NumericType.Single => _asSingle,
+                NumericType.Double => _asDouble,
+                _ => 0.0
+            };
+        }
+
+        private static int CompareIntegrals(Union left, Union right)
+        {
+            bool leftSigned = IsSigned(left._currentType);
+            bool rightSigned = IsSigned(right._currentType);
+            if (leftSigned && rightSigned)
+            {
+                long l = left.AsInt64();
+                long r = right.AsInt64();
+                return l.CompareTo(r);
             }
-            return new Union((long)value);
+            if (!leftSigned && !rightSigned)
+            {
+                ulong l = left.AsUInt64();
+                ulong r = right.AsUInt64();
+                return l.CompareTo(r);
+            }
+            if (leftSigned)
+            {
+                long l = left.AsInt64();
+                if (l < 0) return -1;
+                return ((ulong)l).CompareTo(right.AsUInt64());
+            }
+            else
+            {
+                long r = right.AsInt64();
+                if (r < 0) return 1;
+                return left.AsUInt64().CompareTo((ulong)r);
+            }
+        }
+
+        private static bool IsSigned(NumericType type)
+        {
+            return type == NumericType.SByte || type == NumericType.Int16 ||
+                   type == NumericType.Int32 || type == NumericType.Int64;
+        }
+
+        private long AsInt64()
+        {
+            return _currentType switch
+            {
+                NumericType.SByte => _asSByte,
+                NumericType.Int16 => _asInt16,
+                NumericType.Int32 => _asInt32,
+                NumericType.Int64 => _asInt64,
+                NumericType.Byte => _asByte,
+                NumericType.UInt16 => _asUInt16,
+                NumericType.UInt32 => _asUInt32,
+                _ => 0
+            };
+        }
+
+        private ulong AsUInt64()
+        {
+            return _currentType switch
+            {
+                NumericType.Byte => _asByte,
+                NumericType.UInt16 => _asUInt16,
+                NumericType.UInt32 => _asUInt32,
+                NumericType.UInt64 => _asUInt64,
+                _ => 0
+            };
         }
     }
 }
