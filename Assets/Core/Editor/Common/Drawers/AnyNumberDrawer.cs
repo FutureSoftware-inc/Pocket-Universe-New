@@ -7,13 +7,13 @@ using CrystalEngine;
 namespace CrystalEditor
 {
     /// <summary>
-    /// Кастомный отрисовщик свойств (PropertyDrawer) для универсальной числовой структуры <see cref="AnyNumber"/>.
+    /// Кастомный отрисовщик свойств (PropertyDrawer) для универсальной числовой структуры <see cref="Union"/>.
     /// Использует UI Toolkit для динамического перестроения интерфейса инспектора в зависимости от выбранного типа числа.
     /// <br/><br/>
-    /// A custom property drawer for the universal numeric structure <see cref="AnyNumber"/>.
+    /// A custom property drawer for the universal numeric structure <see cref="Union"/>.
     /// Uses UI Toolkit to dynamically rebuild the inspector interface based on the selected numeric type.
     /// </summary>
-    [CustomPropertyDrawer(typeof(AnyNumber))]
+    [CustomPropertyDrawer(typeof(Union))]
     public class AnyNumberDrawer : PropertyDrawer
     {
         internal const string PROP_TYPE = "_currentType";

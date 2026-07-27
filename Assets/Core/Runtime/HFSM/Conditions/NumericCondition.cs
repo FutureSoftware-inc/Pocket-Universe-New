@@ -19,7 +19,7 @@ namespace CrystalEngine.HFSM
         /// <br/><br/>
         /// The numeric value for comparison, the type of which determines the format of the data requested from the Blackboard.
         /// </summary>
-        [SerializeField] private AnyNumber _selectionValue;
+        [SerializeField] private Union _selectionValue;
 
         /// <summary>
         /// Критерий математического сравнения (например: Равно, Меньше, Больше либо их комбинации).
@@ -38,7 +38,7 @@ namespace CrystalEngine.HFSM
         protected override bool Evaluate(TContext context)
         {
             if (_comparisonType == ComparisonType.None) return false;
-            AnyNumber currentValue = GetValueFromBlackboard(context.Blackboard);
+            Union currentValue = GetValueFromBlackboard(context.Blackboard);
             return _comparisonType switch
             {
                 ComparisonType.Equal => _selectionValue == currentValue,
@@ -57,7 +57,7 @@ namespace CrystalEngine.HFSM
         /// </summary>
         /// <param name="blackboard">Экземпляр доски данных для чтения числового свойства. / The blackboard instance to read the numeric property from.</param>
         /// <returns>Экземпляр универсального числа AnyNumber с прочитанным значением. / An AnyNumber instance holding the retrieved value.</returns>
-        private AnyNumber GetValueFromBlackboard(Blackboard blackboard)
+        private Union GetValueFromBlackboard(Blackboard blackboard)
         {
             return _selectionValue.CurrentType switch
             {
