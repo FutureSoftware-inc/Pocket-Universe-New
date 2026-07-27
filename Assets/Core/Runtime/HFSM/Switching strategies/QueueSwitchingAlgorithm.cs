@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
-using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 
 namespace CrystalEngine.HFSM
@@ -13,26 +13,26 @@ namespace CrystalEngine.HFSM
     /// A queue-based state switching algorithm with full support for synchronous and asynchronous states.
     /// Allows queuing sequences of states to be executed sequentially while correctly managing asynchronous entry and exit processes.
     /// </summary>
-    /// <typeparam name="TContext">Тип класса контекста данных для состояний. / The type of the data context class for the states.</typeparam>
+    /// <typeparam name="TContext">Тип класса контекста данных для состояний.<br/><br/>The type of the data context class for the states.</typeparam>
     public sealed class QueueSwitchingAlgorithm<TContext> : ISwitchingAlgorithm<TContext> where TContext : class
     {
         private TContext _context;
         private IStateSwitcher<TContext> _switcher;
-        private IState<TContext> _current;
+        private ISyncState<TContext> _current;
 
         /// <summary>
         /// Очередь состояний, запланированных на последовательное выполнение.
         /// <br/><br/>
         /// The queue of states scheduled for sequential execution.
         /// </summary>
-        private readonly Queue<IState<TContext>> _stateQueue = new();
+        private readonly Queue<ISyncState<TContext>> _stateQueue = new();
 
         /// <summary>
         /// Внутренний реестр, связывающий системный тип состояния с его конкретным экземпляром.
         /// <br/><br/>
         /// Internal registry mapping a system state type to its specific instance.
         /// </summary>
-        private readonly Dictionary<Type, IState<TContext>> _registry = new();
+        private readonly Dictionary<Type, ISyncState<TContext>> _registry = new();
 
         /// <summary>
         /// Источник токенов отмены для контроля и прерывания текущих асинхронных операций входа и выхода.
@@ -46,7 +46,7 @@ namespace CrystalEngine.HFSM
         /// <br/><br/>
         /// Gets the current active state.
         /// </summary>
-        public IState<TContext> Current => _current;
+        public ISyncState<TContext> Current => _current;
 
         /// <summary>
         /// Регистрирует экземпляр состояния в общем словаре алгоритма для его последующего добавления в очередь.
@@ -55,9 +55,9 @@ namespace CrystalEngine.HFSM
         /// Registers a state instance in the algorithm's internal dictionary for future queuing.
         /// Uses Fluent API by returning a reference to itself.
         /// </summary>
-        /// <param name="state">Регистрируемый экземпляр состояния. / The state instance to register.</param>
-        /// <returns>Текущий экземпляр алгоритма переключения. / The current switching algorithm instance.</returns>
-        public QueueSwitchingAlgorithm<TContext> RegisterState(IState<TContext> state)
+        /// <param name="state">Регистрируемый экземпляр состояния.<br/><br/>The state instance to register.</param>
+        /// <returns>Текущий экземпляр алгоритма переключения.<br/><br/>The current switching algorithm instance.</returns>
+        public QueueSwitchingAlgorithm<TContext> RegisterState(ISyncState<TContext> state)
         {
             if (state != null) _registry[state.GetType()] = state;
             return this;
@@ -68,8 +68,8 @@ namespace CrystalEngine.HFSM
         /// <br/><br/>
         /// Caches the data context and the switcher for the algorithm's internal operations.
         /// </summary>
-        /// <param name="context">Контекст данных машины состояний. / The data context of the state machine.</param>
-        /// <param name="switcher">Компонент переключения состояний. / The state switcher component.</param>
+        /// <param name="context">Контекст данных машины состояний.<br/><br/>The data context of the state machine.</param>
+        /// <param name="switcher">Компонент переключения состояний.<br/><br/>The state switcher component.</param>
         public void Initialize(TContext context, IStateSwitcher<TContext> switcher)
         {
             _context = context;
@@ -83,8 +83,8 @@ namespace CrystalEngine.HFSM
         /// Adds a state of type <typeparamref name="TState"/> to the end of the execution queue.
         /// If there is no active state currently, automatically advances and starts the queue.
         /// </summary>
-        /// <typeparam name="TState">Тип состояния для добавления в очередь. / The type of the state to enqueue.</typeparam>
-        public void EnqueueState<TState>() where TState : IState<TContext>
+        /// <typeparam name="TState">Тип состояния для добавления в очередь.<br/><br/>The type of the state to enqueue.</typeparam>
+        public void EnqueueState<TState>() where TState : ISyncState<TContext>
         {
             if (!_registry.TryGetValue(typeof(TState), out var newState)) return;
 
@@ -148,7 +148,7 @@ namespace CrystalEngine.HFSM
 
             IReadOnlyList<Transition<TContext>> transitions = null;
 
-            if (_current is State<TContext> polymorphicState)
+            if (_current is SyncState<TContext> polymorphicState)
             {
                 transitions = polymorphicState.Transitions;
             }
@@ -193,8 +193,8 @@ namespace CrystalEngine.HFSM
         /// <br/><br/>
         /// Triggers an immediate state switch to <typeparamref name="TState"/> bypassing the queue, completely clearing it beforehand.
         /// </summary>
-        /// <typeparam name="TState">Целевой тип состояния для перехода. / The target state type to transition into.</typeparam>
-        public void ExecuteSwitch<TState>() where TState : IState<TContext>
+        /// <typeparam name="TState">Целевой тип состояния для перехода.<br/><br/>The target state type to transition into.</typeparam>
+        public void ExecuteSwitch<TState>() where TState : ISyncState<TContext>
         {
             if (!_registry.TryGetValue(typeof(TState), out var newState)) return;
             _stateQueue.Clear();
@@ -206,8 +206,8 @@ namespace CrystalEngine.HFSM
         /// <br/><br/>
         /// Internal state transition method. Cancels previous transitions, processes Exit/ExitAsync, and triggers Entry/EntryAsync.
         /// </summary>
-        /// <param name="newState">Новое целевое состояние. / The new target state.</param>
-        private void ExecuteTransition(IState<TContext> newState)
+        /// <param name="newState">Новое целевое состояние.<br/><br/>The new target state.</param>
+        private void ExecuteTransition(ISyncState<TContext> newState)
         {
             if (newState == null || _current == newState) return;
 
@@ -225,9 +225,9 @@ namespace CrystalEngine.HFSM
         /// <br/><br/>
         /// Starts the execution of the state entry logic, automatically separating synchronous and asynchronous contexts.
         /// </summary>
-        /// <param name="state">Целевое состояние для выполнения входа. / The target state to execute entry for.</param>
-        /// <param name="token">Токен отмены для асинхронной операции. / The cancellation token for the asynchronous operation.</param>
-        private void ExecuteEntryLifecycle(IState<TContext> state, CancellationToken token = default)
+        /// <param name="state">Целевое состояние для выполнения входа.<br/><br/> The target state to execute entry for.</param>
+        /// <param name="token">Токен отмены для асинхронной операции.<br/><br/>The cancellation token for the asynchronous operation.</param>
+        private void ExecuteEntryLifecycle(ISyncState<TContext> state, CancellationToken token = default)
         {
             if (state is IAsyncState<TContext> asyncState)
             {
@@ -244,9 +244,9 @@ namespace CrystalEngine.HFSM
         /// <br/><br/>
         /// Starts the execution of the state exit logic, automatically separating synchronous and asynchronous contexts.
         /// </summary>
-        /// <param name="state">Целевое состояние для выполнения выхода. / The target state to execute exit for.</param>
-        /// <param name="token">Токен отмены для асинхронной операции. / The cancellation token for the asynchronous operation.</param>
-        private void ExecuteExitLifecycle(IState<TContext> state, CancellationToken token = default)
+        /// <param name="state">Целевое состояние для выполнения выхода.<br/><br/>The target state to execute exit for.</param>
+        /// <param name="token">Токен отмены для асинхронной операции.<br/><br/>The cancellation token for the asynchronous operation.</param>
+        private void ExecuteExitLifecycle(ISyncState<TContext> state, CancellationToken token = default)
         {
             if (state is IAsyncState<TContext> asyncState)
             {
@@ -263,9 +263,9 @@ namespace CrystalEngine.HFSM
         /// <br/><br/>
         /// Safely processes the execution of an asynchronous task, catching cancellation and logging critical exceptions.
         /// </summary>
-        /// <param name="task">Выполняемая асинхронная задача. / The asynchronous task to be executed.</param>
-        /// <returns>Асинхронная задача. / An asynchronous task.</returns>
-        private async Task ForgetTask(Task task)
+        /// <param name="task">Выполняемая асинхронная задача.<br/><br/>The asynchronous task to be executed.</param>
+        /// <returns>Асинхронная задача.<br/><br/>An asynchronous task.</returns>
+        private async UniTask ForgetTask(UniTask task)
         {
             try
             {

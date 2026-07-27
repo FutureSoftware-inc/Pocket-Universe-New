@@ -11,7 +11,7 @@ namespace CrystalEngine.HFSM
     /// A class representing a transition between states within the state machine (HFSM).
     /// Contains a list of conditions that must be met to trigger the transition.
     /// </summary>
-    /// <typeparam name="TContext">Тип класса контекста данных для состояний. / The type of the data context class for the states.</typeparam>
+    /// <typeparam name="TContext">Тип класса контекста данных для состояний.<br/><br/>The type of the data context class for the states.</typeparam>
     [Serializable]
     public class Transition<TContext> where TContext : class
     {
@@ -36,7 +36,7 @@ namespace CrystalEngine.HFSM
         /// A direct reference to the target state object. Resolved during graph initialization.
         /// </summary>
         [SerializeReferenceSelector]
-        private IState<TContext> _targetState;
+        private ISyncState<TContext> _targetState;
 
         /// <summary>
         /// Возвращает имя целевого состояния.
@@ -50,16 +50,17 @@ namespace CrystalEngine.HFSM
         /// <br/><br/>
         /// Gets the direct reference to the target state.
         /// </summary>
-        public IState<TContext> TargetState => _targetState;
+        public ISyncState<TContext> TargetState => _targetState;
 
         /// <summary>
         /// Инициализирует переход, связывая его с конкретным объектом целевого состояния.
         /// <br/><br/>
         /// Initializes the transition by linking it to a specific target state object.
         /// </summary>
-        /// <param name="targetState">Объект целевого состояния. Не может быть null. / The target state object. Cannot be null.</param>
-        /// <exception cref="ArgumentNullException">Вызывается, если переданный <paramref name="targetState"/> равен null. / Thrown when the specified <paramref name="targetState"/> is null.</exception>
-        public void Initialize(IState<TContext> targetState)
+        /// <param name="targetState">Объект целевого состояния. Не может быть null.<br/><br/>The target state object. Cannot be null.</param>
+        /// <exception cref="ArgumentNullException">Вызывается, если переданный <paramref name="targetState"/> равен null.<br/><br/>
+        /// Thrown when the specified <paramref name="targetState"/> is null.</exception>
+        public void Initialize(ISyncState<TContext> targetState)
         {
             _targetState = targetState ?? throw new ArgumentNullException(nameof(targetState));
         }
@@ -69,8 +70,8 @@ namespace CrystalEngine.HFSM
         /// <br/><br/>
         /// Checks whether all conditions are met to execute the transition to the target state.
         /// </summary>
-        /// <param name="context">Контекст данных машины состояний. / The data context of the state machine.</param>
-        /// <returns>True, если условий нет или все они выполнились успешно; иначе false. / True if there are no conditions or all of them evaluated to true; otherwise, false.</returns>
+        /// <param name="context">Контекст данных машины состояний.<br/><br/>The data context of the state machine.</param>
+        /// <returns>True, если условий нет или все они выполнились успешно; иначе false.<br/><br/>True if there are no conditions or all of them evaluated to true; otherwise, false.</returns>
         public bool ToTargetState(TContext context)
         {
             if (_conditions == null || _conditions.Count == 0) return true;

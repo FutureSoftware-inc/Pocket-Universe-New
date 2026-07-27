@@ -9,7 +9,7 @@ namespace CrystalEngine.HFSM
     /// The central controlling class of the hierarchical finite state machine (HFSM).
     /// Delegates lifecycle management and transition logic to the selected switching algorithm.
     /// </summary>
-    /// <typeparam name="TContext">Тип класса контекста данных для состояний. / The type of the data context class for the states.</typeparam>
+    /// <typeparam name="TContext">Тип класса контекста данных для состояний.<br/><br/>The type of the data context class for the states.</typeparam>
     public sealed class StateMachine<TContext> : IStateSwitcher<TContext> where TContext : class
     {
         private readonly TContext _context;
@@ -20,16 +20,16 @@ namespace CrystalEngine.HFSM
         /// <br/><br/>
         /// Gets the current active state of the machine by querying the switching algorithm.
         /// </summary>
-        public IState<TContext> ActiveState => _algorithm.Current;
+        public ISyncState<TContext> ActiveState => _algorithm.Current;
 
         /// <summary>
         /// Инициализирует новый экземпляр класса <see cref="StateMachine{TContext}"/> с заданным контекстом и стратегией переключения.
         /// <br/><br/>
         /// Initializes a new instance of the <see cref="StateMachine{TContext}"/> class with the specified context and switching strategy.
         /// </summary>
-        /// <param name="context">Контекст данных для работы состояний. Не может быть null. / The data context for state operations. Cannot be null.</param>
-        /// <param name="algorithm">Алгоритм, управляющий сменой состояний. Не может быть null. / The algorithm controlling state transitions. Cannot be null.</param>
-        /// <exception cref="ArgumentNullException">Вызывается, если один из параметров равен null. / Thrown when one of the specified parameters is null.</exception>
+        /// <param name="context">Контекст данных для работы состояний. Не может быть null.<br/><br/>The data context for state operations. Cannot be null.</param>
+        /// <param name="algorithm">Алгоритм, управляющий сменой состояний. Не может быть null.<br/><br/>The algorithm controlling state transitions. Cannot be null.</param>
+        /// <exception cref="ArgumentNullException">Вызывается, если один из параметров равен null.<br/><br/>Thrown when one of the specified parameters is null.</exception>
         public StateMachine(TContext context, ISwitchingAlgorithm<TContext> algorithm)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
@@ -63,8 +63,8 @@ namespace CrystalEngine.HFSM
         /// <br/><br/>
         /// Requests the algorithm to forcefully switch to the specified state type <typeparamref name="TState"/>.
         /// </summary>
-        /// <typeparam name="TState">Целевой тип состояния для перехода. / The target state type to transition into.</typeparam>
-        public void SwitchTo<TState>() where TState : IState<TContext>
+        /// <typeparam name="TState">Целевой тип состояния для перехода.<br/><br/>The target state type to transition into.</typeparam>
+        public void SwitchTo<TState>() where TState : ISyncState<TContext>
         {
             _algorithm.ExecuteSwitch<TState>();
         }

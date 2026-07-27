@@ -25,8 +25,8 @@ namespace CrystalEditor
         /// <br/><br/>
         /// Initializes the extension by calculating the class name through a priority chain: custom name -> name from path -> formatted type name (considering generics).
         /// </summary>
-        /// <param name="type">Исследуемый тип конкретной реализации класса. / The specific class implementation type to inspect.</param>
-        /// <param name="baseType">Базовый тип или интерфейс поля контекста. / The base type or interface of the context field.</param>
+        /// <param name="type">Исследуемый тип конкретной реализации класса.<br/><br/>The specific class implementation type to inspect.</param>
+        /// <param name="baseType">Базовый тип или интерфейс поля контекста.<br/><br/>The base type or interface of the context field.</param>
         public override void Initialize(Type type, Type baseType)
         {
             // Приоритет 1: Ищем кастомное имя через SelectorNameAttribute

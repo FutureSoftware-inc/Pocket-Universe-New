@@ -139,7 +139,7 @@ namespace CrystalEditor
         /// <br/><br/>
         /// Handles the list view selection change event. Captures the selected result and populates the text field with the missing class name.
         /// </summary>
-        /// <param name="selectedItems">Перечисление выбранных пользователем объектов в элементе управления. / An enumerable of objects selected by the user in the control.</param>
+        /// <param name="selectedItems">Перечисление выбранных пользователем объектов в элементе управления.<br/><br/>An enumerable of objects selected by the user in the control.</param>
         private void OnSelectionChanged(IEnumerable<object> selectedItems)
         {
             var selected = _listView.selectedItem;

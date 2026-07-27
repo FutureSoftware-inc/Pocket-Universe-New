@@ -22,8 +22,8 @@ namespace CrystalEditor
         /// <br/><br/>
         /// Creates the ObjectField visual element for the Inspector, automatically initializes the interface type name, and sets up validation callbacks.
         /// </summary>
-        /// <param name="property">Сериализованное свойство, представляющее экземпляр ReferenceProvider. / The serialized property representing the ReferenceProvider instance.</param>
-        /// <returns>Визуальный элемент ObjectField для отображения в инспекторе. / The ObjectField visual element to display in the Inspector.</returns>
+        /// <param name="property">Сериализованное свойство, представляющее экземпляр ReferenceProvider.<br/><br/>The serialized property representing the ReferenceProvider instance.</param>
+        /// <returns>Визуальный элемент ObjectField для отображения в инспекторе.<br/><br/>The ObjectField visual element to display in the Inspector.</returns>
         public override VisualElement CreatePropertyGUI(SerializedProperty property)
         {
             Type interfaceType = fieldInfo.FieldType.GetGenericArguments()[0];
@@ -81,9 +81,9 @@ namespace CrystalEditor
         /// <br/><br/>
         /// Checks if the specified Unity object (or components on its GameObject) implements the target interface.
         /// </summary>
-        /// <param name="obj">Проверяемый объект Unity. / The Unity object to evaluate.</param>
-        /// <param name="interfaceType">Тип проверяемого интерфейса. / The type of the interface to validate against.</param>
-        /// <returns>True, если объект или один из его компонентов реализует интерфейс; иначе false. / True if the object or one of its components implements the interface; otherwise, false.</returns>
+        /// <param name="obj">Проверяемый объект Unity.<br/><br/>The Unity object to evaluate.</param>
+        /// <param name="interfaceType">Тип проверяемого интерфейса.<br/><br/>The type of the interface to validate against.</param>
+        /// <returns>True, если объект или один из его компонентов реализует интерфейс; иначе false.<br/><br/>True if the object or one of its components implements the interface; otherwise, false.</returns>
         private bool IsValidInterfaceProvider(UnityEngine.Object obj, Type interfaceType)
         {
             if (obj == null) return true;

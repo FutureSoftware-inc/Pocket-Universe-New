@@ -27,7 +27,7 @@ namespace CrystalEditor
         public string CurrentPath => _pathTextField != null ? _pathTextField.value : "Assets";
 
 
-        protected override void ApplyStyles()
+        protected override void SetBaseStyle()
         {
             Root.name = "DynamicPathBar";
             Root.style.height = 30;

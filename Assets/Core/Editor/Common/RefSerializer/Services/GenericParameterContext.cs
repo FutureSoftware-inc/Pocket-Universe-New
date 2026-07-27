@@ -40,9 +40,9 @@ namespace CrystalEditor
         /// <br/><br/>
         /// Initializes a new instance of the generic parameter context and automatically filters available project types.
         /// </summary>
-        /// <param name="genericParameter">Метаданные исследуемого generic-параметра. Не может быть null. / The metadata of the generic parameter to examine. Cannot be null.</param>
-        /// <param name="allProjectTypes">Список всех зарегистрированных в сборках проекта типов. Не может быть null. / The list of all types registered in the project assemblies. Cannot be null.</param>
-        /// <exception cref="ArgumentNullException">Вызывается, если один из переданных параметров равен null. / Thrown when one of the specified parameters is null.</exception>
+        /// <param name="genericParameter">Метаданные исследуемого generic-параметра. Не может быть null.<br/><br/>The metadata of the generic parameter to examine. Cannot be null.</param>
+        /// <param name="allProjectTypes">Список всех зарегистрированных в сборках проекта типов. Не может быть null.<br/><br/>The list of all types registered in the project assemblies. Cannot be null.</param>
+        /// <exception cref="ArgumentNullException">Вызывается, если один из переданных параметров равен null.<br/><br/>Thrown when one of the specified parameters is null.</exception>
         public GenericParameterContext(Type genericParameter, IReadOnlyList<Type> allProjectTypes)
         {
             if (genericParameter == null)

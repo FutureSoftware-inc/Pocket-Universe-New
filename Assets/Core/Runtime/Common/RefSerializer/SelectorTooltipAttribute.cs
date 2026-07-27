@@ -24,7 +24,7 @@ namespace CrystalEngine
         /// <br/><br/>
         /// Initializes a new instance of the <see cref="SelectorTooltipAttribute"/> class with the specified tooltip text.
         /// </summary>
-        /// <param name="tooltip">Текст отображаемой подсказки. / The text of the tooltip to display.</param>
+        /// <param name="tooltip">Текст отображаемой подсказки.<br/><br/>The text of the tooltip to display.</param>
         public SelectorTooltipAttribute(string tooltip)
         {
             Tooltip = tooltip;

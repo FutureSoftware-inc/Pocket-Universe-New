@@ -31,20 +31,15 @@ namespace CrystalEditor
             style.marginLeft = 0;
             style.marginRight = 0;
 
-            // ХАК ДЛЯ ДОБЫЧИ НАТИВНОГО СТИЛЯ UNITY ANIMATOR / SHADERGRAPH:
-            // Загружаем встроенный стиль GraphView из системных ресурсов редактора
             StyleSheet nativeGraphStyle = UnityEditor.EditorGUIUtility.Load("GraphView.uss") as StyleSheet;
-
             if (nativeGraphStyle != null)
             {
                 styleSheets.Add(nativeGraphStyle);
             }
             else
             {
-                // Резервный вариант, если в конкретной минорной версии Unity 6 изменили имя ресурса
                 Debug.LogWarning("[CrystalEditor] Не удалось загрузить системный стиль 'GraphView'. Используется дефолтный фон.");
             }
-
             RegisterCallback<ContextualMenuPopulateEvent>(PopulateContextMenu);
         }
 
@@ -52,7 +47,6 @@ namespace CrystalEditor
         private void PopulateContextMenu(ContextualMenuPopulateEvent evt)
         {
             Vector2 localGraphPosition = contentViewContainer.WorldToLocal(evt.localMousePosition);
-
             Vector2 screenPosition = evt.triggerEvent is IMouseEvent mouseEvent
                 ? mouseEvent.mousePosition
                 : GUIUtility.GUIToScreenPoint(evt.localMousePosition);

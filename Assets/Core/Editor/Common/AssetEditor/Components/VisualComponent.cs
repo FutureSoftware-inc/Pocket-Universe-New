@@ -21,14 +21,14 @@ namespace CrystalEditor
             Root = new TElement();
 
             // 2. Вызываем строго последовательный жизненный цикл сборки
-            ApplyStyles();
+            SetBaseStyle();
             BuildStructure();
         }
 
         /// <summary>
         /// Этап 1: Настройка внешнего вида, геометрии, отступов и цветов контейнера.
         /// </summary>
-        protected abstract void ApplyStyles();
+        protected abstract void SetBaseStyle();
 
         /// <summary>
         /// Этап 2: Наполнение контейнера дочерними элементами (кнопками, полями, текстом).

@@ -24,7 +24,7 @@ namespace CrystalEditor
         /// <br/><br/>
         /// Serializes the specified object into a string with a prefix marker and type, then places it into the system copy buffer.
         /// </summary>
-        /// <param name="target">Объект для копирования. / The object to copy.</param>
+        /// <param name="target">Объект для копирования.<br/><br/>The object to copy.</param>
         public static void Copy(object target)
         {
             if (target == null) return;
@@ -46,7 +46,7 @@ namespace CrystalEditor
         /// <br/><br/>
         /// Creates a new instance of the cached type and restores data into it from the copy buffer's JSON string.
         /// </summary>
-        /// <returns>Новый воссозданный объект или null, если операция не удалась. / A new recreated object, or null if the operation fails.</returns>
+        /// <returns>Новый воссозданный объект или null, если операция не удалась.<br/><br/>A new recreated object, or null if the operation fails.</returns>
         public static object Paste()
         {
             try
@@ -72,8 +72,8 @@ namespace CrystalEditor
         /// <br/><br/>
         /// Validates the system copy buffer for valid CrystalEngine data and evaluates the compatibility of the copied type against the target field's base type.
         /// </summary>
-        /// <param name="baseType">Базовый тип или интерфейс целевого поля. / The base type or interface of the target field.</param>
-        /// <returns>True, если данные в буфере валидны и типы совместимы; иначе false. / True if the buffer data is valid and types are compatible; otherwise, false.</returns>
+        /// <param name="baseType">Базовый тип или интерфейс целевого поля.<br/><br/>The base type or interface of the target field.</param>
+        /// <returns>True, если данные в буфере валидны и типы совместимы; иначе false.<br/><br/>True if the buffer data is valid and types are compatible; otherwise, false.</returns>
         public static bool CanPaste(Type baseType)
         {
             string currentBuffer = EditorGUIUtility.systemCopyBuffer;
@@ -111,9 +111,9 @@ namespace CrystalEditor
         /// <br/><br/>
         /// Evaluates logical type compatibility, including support for open and closed generic interfaces and classes.
         /// </summary>
-        /// <param name="baseType">Базовый ожидаемый тип. / The expected base type.</param>
-        /// <param name="copiedType">Тип копируемого объекта. / The type of the copied object.</param>
-        /// <returns>True, если скопированный тип может быть приведен к базовому; иначе false. / True if the copied type can be assigned to the base type; otherwise, false.</returns>
+        /// <param name="baseType">Базовый ожидаемый тип.<br/><br/>The expected base type.</param>
+        /// <param name="copiedType">Тип копируемого объекта.<br/><br/>The type of the copied object.</param>
+        /// <returns>True, если скопированный тип может быть приведен к базовому; иначе false.<br/><br/>True if the copied type can be assigned to the base type; otherwise, false.</returns>
         private static bool IsTypeCompatible(Type baseType, Type copiedType)
         {
             if (!baseType.IsGenericType && !copiedType.IsGenericType)

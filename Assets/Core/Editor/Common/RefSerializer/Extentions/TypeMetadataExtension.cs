@@ -16,8 +16,8 @@ namespace CrystalEditor
         /// <br/><br/>
         /// Initializes the metadata extension for a specific implementation type relative to its base type.
         /// </summary>
-        /// <param name="type">Исследуемый тип конкретной реализации класса. / The specific class implementation type to inspect.</param>
-        /// <param name="baseType">Базовый тип или интерфейс поля контекста. / The base type or interface of the context field.</param>
+        /// <param name="type">Исследуемый тип конкретной реализации класса.<br/><br/>The specific class implementation type to inspect.</param>
+        /// <param name="baseType">Базовый тип или интерфейс поля контекста.<br/><br/>The base type or interface of the context field.</param>
         public abstract void Initialize(Type type, Type baseType);
     }
 }

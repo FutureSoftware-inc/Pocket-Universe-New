@@ -7,7 +7,7 @@ namespace CrystalEngine.HFSM
     /// Defines an interface for a state switching algorithm (strategy) within the state machine (HFSM).
     /// Responsible for the logic of selecting, changing, and updating the currently active state.
     /// </summary>
-    /// <typeparam name="TContext">Тип класса контекста данных для состояний. / The type of the data context class for the states.</typeparam>
+    /// <typeparam name="TContext">Тип класса контекста данных для состояний.<br/><br/>The type of the data context class for the states.</typeparam>
     public interface ISwitchingAlgorithm<TContext> where TContext : class
     {
         /// <summary>
@@ -15,15 +15,15 @@ namespace CrystalEngine.HFSM
         /// <br/><br/>
         /// Gets the current active state managed by this algorithm.
         /// </summary>
-        IState<TContext> Current { get; }
+        ISyncState<TContext> Current { get; }
 
         /// <summary>
         /// Инициализирует алгоритм переключения, связывая его с контекстом данных и компонентом переключения состояний.
         /// <br/><br/>
         /// Initializes the switching algorithm, linking it with the data context and the state switcher component.
         /// </summary>
-        /// <param name="context">Контекст данных машины состояний. / The data context of the state machine.</param>
-        /// <param name="switсher">Компонент, осуществляющий непосредственную смену состояний. / The component that performs the actual state switching.</param>
+        /// <param name="context">Контекст данных машины состояний.<br/><br/>The data context of the state machine.</param>
+        /// <param name="switсher">Компонент, осуществляющий непосредственную смену состояний.<br/><br/>The component that performs the actual state switching.</param>
         void Initialize(TContext context, IStateSwitcher<TContext> switсher);
 
         /// <summary>
@@ -52,7 +52,7 @@ namespace CrystalEngine.HFSM
         /// <br/><br/>
         /// Executes the actual transition from the current state to a state of type <typeparamref name="TState"/>.
         /// </summary>
-        /// <typeparam name="TState">Целевой тип состояния, реализующий <see cref="IState{TContext}"/>. / The target state type implementing <see cref="IState{TContext}"/>.</typeparam>
-        void ExecuteSwitch<TState>() where TState : IState<TContext>;
+        /// <typeparam name="TState">Целевой тип состояния, реализующий <see cref="ISyncState{TContext}"/>.<br/><br/>The target state type implementing <see cref="ISyncState{TContext}"/>.</typeparam>
+        void ExecuteSwitch<TState>() where TState : ISyncState<TContext>;
     }
 }

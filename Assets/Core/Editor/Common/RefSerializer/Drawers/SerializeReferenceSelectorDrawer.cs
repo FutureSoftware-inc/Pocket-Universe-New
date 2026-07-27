@@ -29,8 +29,8 @@ namespace CrystalEditor
         /// <br/><br/>
         /// Creates and configures the visual element hierarchy using UI Toolkit to display the polymorphic field in the Inspector.
         /// </summary>
-        /// <param name="property">Сериализованное управляемое свойство типа ManagedReference. / The serialized managed reference property.</param>
-        /// <returns>Корневой визуальный элемент интерфейса свойства. / The root visual element of the property GUI.</returns>
+        /// <param name="property">Сериализованное управляемое свойство типа ManagedReference.<br/><br/>The serialized managed reference property.</param>
+        /// <returns>Корневой визуальный элемент интерфейса свойства.<br/><br/>The root visual element of the property GUI.</returns>
         public override VisualElement CreatePropertyGUI(SerializedProperty property)
         {
             // Если поле не использует [SerializeReference] (ManagedReference), рисуем его стандартно

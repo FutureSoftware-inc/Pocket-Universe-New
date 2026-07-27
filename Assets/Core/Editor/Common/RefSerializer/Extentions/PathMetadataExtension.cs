@@ -25,8 +25,8 @@ namespace CrystalEditor
         /// <br/><br/>
         /// Initializes the extension by attempting to find the subclass path attribute on the specified type using reflection.
         /// </summary>
-        /// <param name="type">Исследуемый тип конкретной реализации класса. / The specific class implementation type to inspect.</param>
-        /// <param name="baseType">Базовый тип или интерфейс поля контекста. / The base type or interface of the context field.</param>
+        /// <param name="type">Исследуемый тип конкретной реализации класса.<br/><br/>The specific class implementation type to inspect.</param>
+        /// <param name="baseType">Базовый тип или интерфейс поля контекста.<br/><br/>The base type or interface of the context field.</param>
         public override void Initialize(Type type, Type baseType)
         {
             var attr = type.GetCustomAttributes(typeof(SubclassPathAttribute), false).FirstOrDefault() as SubclassPathAttribute;

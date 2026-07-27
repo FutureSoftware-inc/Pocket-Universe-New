@@ -58,10 +58,10 @@ namespace CrystalEngine
         /// <br/><br/>
         /// Initializes a new instance of graph node data with the specified identifier, position, and name.
         /// </summary>
-        /// <param name="guid">Уникальный идентификатор узла. Не может быть null. / The unique identifier of the node. Cannot be null.</param>
-        /// <param name="position">Позиция узла на холсте редактора. / The position of the node on the editor canvas.</param>
-        /// <param name="name">Отображаемое имя узла. / The display name of the node.</param>
-        /// <exception cref="ArgumentNullException">Вызывается, если переданный <paramref name="guid"/> равен null. / Thrown when the specified <paramref name="guid"/> is null.</exception>
+        /// <param name="guid">Уникальный идентификатор узла. Не может быть null.<br/><br/>The unique identifier of the node. Cannot be null.</param>
+        /// <param name="position">Позиция узла на холсте редактора.<br/><br/>The position of the node on the editor canvas.</param>
+        /// <param name="name">Отображаемое имя узла.<br/><br/>The display name of the node.</param>
+        /// <exception cref="ArgumentNullException">Вызывается, если переданный <paramref name="guid"/> равен null.<br/><br/>Thrown when the specified <paramref name="guid"/> is null.</exception>
         public GraphNodeData(string guid, Vector2 position, string name)
         {
             _guid = guid ?? throw new ArgumentNullException(nameof(guid));

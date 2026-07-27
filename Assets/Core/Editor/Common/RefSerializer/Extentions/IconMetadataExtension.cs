@@ -27,8 +27,8 @@ namespace CrystalEditor
         /// <br/><br/>
         /// Initializes the extension by extracting the icon name or path from the attribute, attempting to load it first from Unity's built-in database and then from project paths.
         /// </summary>
-        /// <param name="type">Исследуемый тип конкретной реализации класса. / The specific class implementation type to inspect.</param>
-        /// <param name="baseType">Базовый тип или интерфейс поля контекста. / The base type or interface of the context field.</param>
+        /// <param name="type">Исследуемый тип конкретной реализации класса.<br/><br/>The specific class implementation type to inspect.</param>
+        /// <param name="baseType">Базовый тип или интерфейс поля контекста.<br/><br/>The base type or interface of the context field.</param>
         public override void Initialize(Type type, Type baseType)
         {
             var attr = type.GetCustomAttributes(typeof(SelectorIconAttribute), false).FirstOrDefault() as SelectorIconAttribute;

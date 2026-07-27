@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
-using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 
 namespace CrystalEngine.HFSM
@@ -13,7 +13,7 @@ namespace CrystalEngine.HFSM
     /// Abstract base implementation of an asynchronous state for a hierarchical finite state machine (HFSM).
     /// Integrates asynchronous operations and commands with cancellation support via a CancellationToken during entry and exit stages.
     /// </summary>
-    /// <typeparam name="TContext">Тип класса контекста данных для состояний. / The type of the data context class for the states.</typeparam>
+    /// <typeparam name="TContext">Тип класса контекста данных для состояний.<br/><br/>The type of the data context class for the states.</typeparam>
     [Serializable]
     public abstract class AsyncState<TContext> : IAsyncState<TContext> where TContext : class
     {
@@ -22,7 +22,7 @@ namespace CrystalEngine.HFSM
         /// <br/><br/>
         /// The name of the state for identification and debugging in the Inspector or graph.
         /// </summary>
-        [SerializeField] private string _stateName;
+        [SerializeReference] private string _stateName;
 
         /// <summary>
         /// Список переходов, ведущих из данного состояния в другие.
@@ -30,7 +30,7 @@ namespace CrystalEngine.HFSM
         /// The list of transitions leading from this state to others.
         /// </summary>
         [SerializeReferenceSelector]
-        [SerializeField] private List<Transition<TContext>> _transitions = new();
+        [SerializeReference] private List<Transition<TContext>> _transitions = new();
 
         /// <summary>
         /// Список команд, выполняемых при асинхронном входе в состояние.
@@ -38,7 +38,7 @@ namespace CrystalEngine.HFSM
         /// The list of commands executed upon asynchronous state entry.
         /// </summary>
         [SerializeReferenceSelector]
-        [SerializeField] private List<IBehaviourCommand<TContext>> _entryCommands;
+        [SerializeReference] private List<IBehaviourCommand<TContext>> _entryCommands;
 
         /// <summary>
         /// Список команд, выполняемых при асинхронном выходе из состояния.
@@ -46,7 +46,7 @@ namespace CrystalEngine.HFSM
         /// The list of commands executed upon asynchronous state exit.
         /// </summary>
         [SerializeReferenceSelector]
-        [SerializeField] private List<IBehaviourCommand<TContext>> _exitCommands;
+        [SerializeReference] private List<IBehaviourCommand<TContext>> _exitCommands;
 
         /// <summary>
         /// Список команд, выполняемых каждый кадр в цикле Update.
@@ -54,7 +54,7 @@ namespace CrystalEngine.HFSM
         /// The list of commands executed every frame during the Update cycle.
         /// </summary>
         [SerializeReferenceSelector]
-        [SerializeField] private List<IBehaviourCommand<TContext>> _updateCommands;
+        [SerializeReference] private List<IBehaviourCommand<TContext>> _updateCommands;
 
         /// <summary>
         /// Список команд, выполняемых каждый физический кадр в цикле FixedUpdate.
@@ -62,7 +62,7 @@ namespace CrystalEngine.HFSM
         /// The list of commands executed every physics frame during the FixedUpdate cycle.
         /// </summary>
         [SerializeReferenceSelector]
-        [SerializeField] private List<IBehaviourCommand<TContext>> _fixedUpdateCommands;
+        [SerializeReference] private List<IBehaviourCommand<TContext>> _fixedUpdateCommands;
 
         /// <summary>
         /// Список команд, выполняемых в конце каждого кадра в цикле LateUpdate.
@@ -70,7 +70,7 @@ namespace CrystalEngine.HFSM
         /// The list of commands executed at the end of every frame during the LateUpdate cycle.
         /// </summary>
         [SerializeReferenceSelector]
-        [SerializeField] private List<IBehaviourCommand<TContext>> _lateUpdateCommands;
+        [SerializeReference] private List<IBehaviourCommand<TContext>> _lateUpdateCommands;
 
         /// <summary>
         /// Вложенная дочерняя машина состояний (обеспечивает иерархичность структуры HFSM).
@@ -133,7 +133,7 @@ namespace CrystalEngine.HFSM
         /// <br/><br/>
         /// Initializes a new instance of the <see cref="AsyncState{TContext}"/> class with the specified name.
         /// </summary>
-        /// <param name="stateName">Имя состояния. / The name of the state.</param>
+        /// <param name="stateName">Имя состояния.<br/><br/>The name of the state.</param>
         public AsyncState(string stateName) => _stateName = stateName;
 
         /// <summary>
@@ -141,10 +141,10 @@ namespace CrystalEngine.HFSM
         /// <br/><br/>
         /// Asynchronously activates the state, checking the cancellation token, executing entry commands, and nested machine logic.
         /// </summary>
-        /// <param name="context">Контекст данных машины состояний. / The data context of the state machine.</param>
-        /// <param name="token">Токен отмены асинхронной операции. / The cancellation token for the operation.</param>
-        /// <returns>Задача, представляющая процесс входа в состояние. / A task representing the state entry process.</returns>
-        public async Task EntryAsync(TContext context, CancellationToken token)
+        /// <param name="context">Контекст данных машины состояний.<br/><br/>The data context of the state machine.</param>
+        /// <param name="token">Токен отмены асинхронной операции.<br/><br/>The cancellation token for the operation.</param>
+        /// <returns>Задача, представляющая процесс входа в состояние.<br/><br/>A task representing the state entry process.</returns>
+        public async UniTask EntryAsync(TContext context, CancellationToken token)
         {
             for (int i = 0; i < _entryCommands.Count; i++)
             {
@@ -153,7 +153,7 @@ namespace CrystalEngine.HFSM
             }
             _subStateMachine?.ActiveState?.Entry(context);
             OnEntered?.Invoke(this, context);
-            await Task.CompletedTask;
+            await UniTask.CompletedTask;
         }
 
         /// <summary>
@@ -161,10 +161,10 @@ namespace CrystalEngine.HFSM
         /// <br/><br/>
         /// Asynchronously deactivates the state, checking the cancellation token, executing exit commands, and nested machine logic.
         /// </summary>
-        /// <param name="context">Контекст данных машины состояний. / The data context of the state machine.</param>
-        /// <param name="token">Токен отмены асинхронной операции. / The cancellation token for the operation.</param>
-        /// <returns>Задача, представляющая процесс выхода из состояния. / A task representing the state exit process.</returns>
-        public async Task ExitAsync(TContext context, CancellationToken token)
+        /// <param name="context">Контекст данных машины состояний.<br/><br/>The data context of the state machine.</param>
+        /// <param name="token">Токен отмены асинхронной операции.<br/><br/>The cancellation token for the operation.</param>
+        /// <returns>Задача, представляющая процесс выхода из состояния.<br/><br/>A task representing the state exit process.</returns>
+        public async UniTask ExitAsync(TContext context, CancellationToken token)
         {
             for (int i = 0; i < _exitCommands.Count; i++)
             {
@@ -173,7 +173,7 @@ namespace CrystalEngine.HFSM
             }
             _subStateMachine?.ActiveState?.Exit(context);
             OnExited?.Invoke(this, context);
-            await Task.CompletedTask;
+            await UniTask.CompletedTask;
         }
 
         /// <summary>
@@ -181,7 +181,7 @@ namespace CrystalEngine.HFSM
         /// <br/><br/>
         /// Updates the state logic every frame, executing regular commands and updating the nested state machine.
         /// </summary>
-        /// <param name="context">Контекст данных машины состояний. / The data context of the state machine.</param>
+        /// <param name="context">Контекст данных машины состояний.<br/><br/>The data context of the state machine.</param>
         public void Update(TContext context)
         {
             for (int i = 0; i < _updateCommands.Count; i++)
@@ -197,7 +197,7 @@ namespace CrystalEngine.HFSM
         /// <br/><br/>
         /// Physics update of the state, executing physics commands and updating the nested state machine.
         /// </summary>
-        /// <param name="context">Контекст данных машины состояний. / The data context of the state machine.</param>
+        /// <param name="context">Контекст данных машины состояний.<br/><br/>The data context of the state machine.</param>
         public virtual void FixedUpdate(TContext context)
         {
             for (int i = 0; i < _fixedUpdateCommands.Count; i++)
@@ -213,7 +213,7 @@ namespace CrystalEngine.HFSM
         /// <br/><br/>
         /// Late update of the state, executing final frame logic and updating the nested state machine.
         /// </summary>
-        /// <param name="context">Контекст данных машины состояний. / The data context of the state machine.</param>
+        /// <param name="context">Контекст данных машины состояний.<br/><br/>The data context of the state machine.</param>
         public virtual void LateUpdate(TContext context)
         {
             for (int i = 0; i < _lateUpdateCommands.Count; i++)

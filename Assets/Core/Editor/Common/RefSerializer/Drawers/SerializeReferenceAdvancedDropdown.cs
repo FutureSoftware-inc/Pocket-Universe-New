@@ -27,11 +27,11 @@ namespace CrystalEditor
         /// <br/><br/>
         /// Initializes a new instance of the advanced dropdown with the specified base type, list of implementations, and selection callback.
         /// </summary>
-        /// <param name="baseType">Базовый тип или интерфейс сериализуемого поля. / The base type or interface of the serializable field.</param>
-        /// <param name="types">Список всех доступных типов-реализаций для отображения. / The list of all available implementation types to display.</param>
-        /// <param name="onTypeSelected">Делегат, вызываемый при выборе элемента из списка. / The delegate invoked when an item is selected from the list.</param>
-        /// <param name="state">Текущее сериализуемое состояние окна выпадающего списка. / The current serialized state of the dropdown window.</param>
-        /// <exception cref="ArgumentNullException">Вызывается, если один из обязательных параметров равен null. / Thrown when one of the specified parameters is null.</exception>
+        /// <param name="baseType">Базовый тип или интерфейс сериализуемого поля.<br/><br/>The base type or interface of the serializable field.</param>
+        /// <param name="types">Список всех доступных типов-реализаций для отображения.<br/><br/>The list of all available implementation types to display.</param>
+        /// <param name="onTypeSelected">Делегат, вызываемый при выборе элемента из списка.<br/><br/>The delegate invoked when an item is selected from the list.</param>
+        /// <param name="state">Текущее сериализуемое состояние окна выпадающего списка.<br/><br/>The current serialized state of the dropdown window.</param>
+        /// <exception cref="ArgumentNullException">Вызывается, если один из обязательных параметров равен null.<br/><br/>Thrown when one of the specified parameters is null.</exception>
         public SerializeReferenceAdvancedDropdown(Type baseType, IReadOnlyList<Type> types, Action<Type> onTypeSelected, AdvancedDropdownState state)
             : base(state)
         {
@@ -46,7 +46,7 @@ namespace CrystalEditor
         /// <br/><br/>
         /// Builds the root element of the tree and populates the dropdown menu with child items based on metadata from the type registry.
         /// </summary>
-        /// <returns>Корневой элемент иерархии выпадающего списка. / The root item of the dropdown hierarchy.</returns>
+        /// <returns>Корневой элемент иерархии выпадающего списка.<br/><br/>The root item of the dropdown hierarchy.</returns>
         protected override AdvancedDropdownItem BuildRoot()
         {
             AdvancedDropdownItem root = new AdvancedDropdownItem("Select Type");
@@ -110,7 +110,7 @@ namespace CrystalEditor
         /// Triggered when an item is selected by the user. 
         /// Processes type extraction, automatic generic closure for the context, and invokes the selection event.
         /// </summary>
-        /// <param name="item">Выбранный элемент выпадающего списка. / The selected dropdown item.</param>
+        /// <param name="item">Выбранный элемент выпадающего списка.<br/><br/>The selected dropdown item.</param>
         protected override void ItemSelected(AdvancedDropdownItem item)
         {
             if (!_itemToTypeMap.TryGetValue(item, out Type selectedType)) return;

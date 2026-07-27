@@ -151,36 +151,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1d9445e59e95bb44a870235e5d67df60, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UnitTest
-  ConditionsList:
-  - rid: 7003737841516413009
-  - rid: -2
-  TransitionsList:
-  - rid: -2
   State:
-    rid: -2
+    rid: 7003737938787565840
   references:
     version: 2
     RefIds:
-    - rid: -2
-      type: {class: , ns: , asm: }
-    - rid: 7003737841516413009
-      type: {class: 'NumericCondition`1[[UnitTest, Assembly-CSharp]]', ns: CrystalEngine.HFSM, asm: Assembly-CSharp}
+    - rid: 7003737938787565840
+      type: {class: 'SyncState`1[[UnitTest, Assembly-CSharp]]', ns: CrystalEngine.HFSM, asm: Assembly-CSharp}
       data:
-        _propertyName: Property name
-        _invert: 0
-        _selectionValue:
-          _asByte: 0
-          _asSByte: 0
-          _asUInt16: 0
-          _asInt16: 0
-          _asUInt32: 0
-          _asInt32: 0
-          _asUInt64: 0
-          _asInt64: 0
-          _asSingle: 0
-          _asDouble: 0
-          _currentType: 0
-        _comparisonType: 0
+        _stateName: 
+        _transitions: []
+        _entryCommands: []
+        _exitCommands: []
+        _updateCommands: []
+        _fixedUpdateCommands: []
+        _lateUpdateCommands: []
 --- !u!114 &1807219703
 MonoBehaviour:
   m_ObjectHideFlags: 0

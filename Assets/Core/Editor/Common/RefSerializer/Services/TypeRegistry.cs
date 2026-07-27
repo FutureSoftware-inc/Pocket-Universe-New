@@ -26,6 +26,7 @@ namespace CrystalEditor
         public static void ClearCache()
         {
             _typeCache.Clear();
+            _metadataCache.Clear();
         }
 
         /// <summary>
@@ -35,9 +36,9 @@ namespace CrystalEditor
         /// Returns a list of all valid (concrete and non-abstract) implementations for the specified base type or interface.
         /// Correctly unwraps closed generic types to their generic type definitions for accurate lookup.
         /// </summary>
-        /// <param name="baseType">Базовый тип или интерфейс для поиска наследников. Не может быть null. / The base type or interface to find inheritors for. Cannot be null.</param>
-        /// <returns>Список доступных типов-реализаций. / A list of available implementation types.</returns>
-        /// <exception cref="ArgumentNullException">Вызывается, если переданный параметр <paramref name="baseType"/> равен null. / Thrown when the specified <paramref name="baseType"/> parameter is null.</exception>
+        /// <param name="baseType">Базовый тип или интерфейс для поиска наследников. Не может быть null.<br/><br/>The base type or interface to find inheritors for. Cannot be null.</param>
+        /// <returns>Список доступных типов-реализаций.<br/><br/>A list of available implementation types.</returns>
+        /// <exception cref="ArgumentNullException">Вызывается, если переданный параметр <paramref name="baseType"/> равен null.<br/><br/>Thrown when the specified <paramref name="baseType"/> parameter is null.</exception>
         public static IReadOnlyList<Type> GetImplementations(Type baseType)
         {
             if (baseType == null)
@@ -63,10 +64,10 @@ namespace CrystalEditor
         /// <br/><br/>
         /// Retrieves or lazily initializes the metadata extension of the specified type <typeparamref name="T"/> relative to the base type.
         /// </summary>
-        /// <typeparam name="T">Тип запрашиваемого расширения метаданных, наследуемый от TypeMetadataExtension. / The type of the requested metadata extension, derived from TypeMetadataExtension.</typeparam>
-        /// <param name="type">Исследуемый тип реализации. / The implementation type to inspect.</param>
-        /// <param name="baseType">Базовый тип или интерфейс поля контекста. / The base type or interface of the context field.</param>
-        /// <returns>Экземпляр расширения метаданных или null, если расширение не найдено. / The metadata extension instance, or null if not found.</returns>
+        /// <typeparam name="T">Тип запрашиваемого расширения метаданных, наследуемый от TypeMetadataExtension.<br/><br/>The type of the requested metadata extension, derived from TypeMetadataExtension.</typeparam>
+        /// <param name="type">Исследуемый тип реализации.<br/><br/>The implementation type to inspect.</param>
+        /// <param name="baseType">Базовый тип или интерфейс поля контекста.<br/><br/>The base type or interface of the context field.</param>
+        /// <returns>Экземпляр расширения метаданных или null, если расширение не найдено.<br/><br/>The metadata extension instance, or null if not found.</returns>
         public static T GetExtension<T>(Type type, Type baseType) where T : TypeMetadataExtension
         {
             if (!_metadataCache.TryGetValue(type, out var extensions))
@@ -99,8 +100,8 @@ namespace CrystalEditor
         /// <br/><br/>
         /// Validates whether the type is a valid implementation for the Inspector (excludes interfaces and abstract classes).
         /// </summary>
-        /// <param name="type">Проверяемый системный тип. / The system type to validate.</param>
-        /// <returns>True, если тип не абстрактный и не интерфейс; иначе false. / True if the type is neither abstract nor an interface; otherwise, false.</returns>
+        /// <param name="type">Проверяемый системный тип.<br/><br/>The system type to validate.</param>
+        /// <returns>True, если тип не абстрактный и не интерфейс; иначе false.<br/><br/>True if the type is neither abstract nor an interface; otherwise, false.</returns>
         private static bool IsValidImplementation(Type type)
         {
             return !type.IsInterface && !type.IsAbstract;

@@ -7,7 +7,7 @@ namespace CrystalEngine.HFSM
     /// Defines an interface for a state switcher within the hierarchical finite state machine (HFSM).
     /// Provides a contract for executing direct transitions between specific state types.
     /// </summary>
-    /// <typeparam name="TContext">Тип класса контекста данных для состояний. / The type of the data context class for the states.</typeparam>
+    /// <typeparam name="TContext">Тип класса контекста данных для состояний.<br/><br/>The type of the data context class for the states.</typeparam>
     public interface IStateSwitcher<TContext> where TContext : class
     {
         /// <summary>
@@ -15,7 +15,7 @@ namespace CrystalEngine.HFSM
         /// <br/><br/>
         /// Executes a direct transition of the state machine to the specified state type <typeparamref name="TState"/>.
         /// </summary>
-        /// <typeparam name="TState">Целевой тип состояния, реализующий <see cref="IState{TContext}"/>. / The target state type implementing <see cref="IState{TContext}"/>.</typeparam>
-        void SwitchTo<TState>() where TState : IState<TContext>;
+        /// <typeparam name="TState">Целевой тип состояния, реализующий <see cref="ISyncState{TContext}"/>.<br/><br/>The target state type implementing <see cref="ISyncState{TContext}"/>.</typeparam>
+        void SwitchTo<TState>() where TState : ISyncState<TContext>;
     }
 }

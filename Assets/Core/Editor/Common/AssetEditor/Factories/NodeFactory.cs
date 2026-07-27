@@ -1,26 +1,42 @@
-using CrystalEngine;
-using System;
+using System.Collections.Generic;
+using UnityEditor.Experimental.GraphView;
 using UnityEngine;
+using CrystalEngine.HFSM;
+using CrystalEngine;
 
 namespace CrystalEditor
 {
-    /// <summary>
-    /// Фабрика для генерации и подготовки метаданных узлов графа.
-    /// </summary>
     public static class NodeFactory
     {
-        /// <summary>
-        /// Создает заполненный объект метаданных GraphNodeData с уникальным GUID.
-        /// </summary>
-        public static GraphNodeData CreateMetadata(Type nodeType, Vector2 position)
+        // 1. Создание метаданных для одной ноды
+        public static GraphNodeData CreateMetadata(System.Type type, Vector2 position, string customName = "")
         {
-            if (nodeType == null) throw new ArgumentNullException(nameof(nodeType));
+            string guid = System.Guid.NewGuid().ToString();
+            string name = string.IsNullOrEmpty(customName) ? type.Name : customName;
+            return new GraphNodeData(guid, position, name);
+        }
 
-            string newGuid = Guid.NewGuid().ToString();
-            string cleanName = nodeType.Name;
-
-            // Используем конструктор строго по твоей сигнатуре (guid, position, name)
-            return new GraphNodeData(newGuid, position, cleanName);
+        public static void ExtractGraphData(GraphView graphView, out List<GraphNodeData> nodesToSave, out List<ISyncState<IBlackboardProvider>> runtimeStatesToSave)
+        {
+            nodesToSave = new List<GraphNodeData>();
+            runtimeStatesToSave = new List<ISyncState<IBlackboardProvider>>();
+            if (graphView == null || graphView.nodes == null) return;
+            foreach (var node in graphView.nodes)
+            {
+                if (node is GridNode visualNode)
+                {
+                    var currentData = new GraphNodeData(
+                        visualNode.Guid,
+                        visualNode.GetPosition().position,
+                        visualNode.title
+                    );
+                    nodesToSave.Add(currentData);
+                    if (visualNode is StateNode stateNode && stateNode.UnderlyingState != null)
+                    {
+                        runtimeStatesToSave.Add(stateNode.UnderlyingState);
+                    }
+                }
+            }
         }
     }
 }

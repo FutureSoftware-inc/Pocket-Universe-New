@@ -13,7 +13,7 @@ namespace CrystalEditor
             _onModeChanged = onModeChanged;
         }
 
-        protected override void ApplyStyles()
+        protected override void SetBaseStyle()
         {
             Root.name = "TopPanel";
             Root.style.height = 40;

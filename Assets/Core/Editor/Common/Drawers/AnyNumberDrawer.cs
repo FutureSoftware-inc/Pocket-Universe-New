@@ -35,8 +35,8 @@ namespace CrystalEditor
         /// <br/><br/>
         /// Creates and configures visual elements (UI Toolkit) for displaying the structure in the Unity Inspector.
         /// </summary>
-        /// <param name="property">Сериализованное свойство, представляющее структуру AnyNumber. / The serialized property representing the AnyNumber structure.</param>
-        /// <returns>Корневой визуальный элемент интерфейса свойства. / The root visual element of the property GUI.</returns>
+        /// <param name="property">Сериализованное свойство, представляющее структуру AnyNumber.<br/><br/>The serialized property representing the AnyNumber structure.</param>
+        /// <returns>Корневой визуальный элемент интерфейса свойства.<br/><br/>The root visual element of the property GUI.</returns>
         public override VisualElement CreatePropertyGUI(SerializedProperty property)
         {
             VisualElement root = new VisualElement();
@@ -82,9 +82,9 @@ namespace CrystalEditor
         /// Rebuilds the input interface by creating a LongField or DoubleField depending on the selected numeric type,
         /// and configures data validation and clamping (Math.Clamp) within specific primitive bounds.
         /// </summary>
-        /// <param name="container">Контейнер, в который помещается актуальное поле ввода. / The container where the active input field is placed.</param>
-        /// <param name="valueProps">Массив всех числовых сериализованных полей структуры. / An array of all numeric serialized properties of the structure.</param>
-        /// <param name="currentType">Текущий выбранный числовой тип данных. / The currently selected numeric data type.</param>
+        /// <param name="container">Контейнер, в который помещается актуальное поле ввода.<br/><br/>The container where the active input field is placed.</param>
+        /// <param name="valueProps">Массив всех числовых сериализованных полей структуры.<br/><br/>An array of all numeric serialized properties of the structure.</param>
+        /// <param name="currentType">Текущий выбранный числовой тип данных.<br/><br/>The currently selected numeric data type.</param>
         private void RebuildInterface(VisualElement container, SerializedProperty[] valueProps, NumericType currentType)
         {
             container.Clear();

@@ -11,7 +11,7 @@ namespace CrystalEngine.HFSM
     /// Abstract base class for transition conditions within the state machine.
     /// Allows evaluating logical criteria with support for result inversion.
     /// </summary>
-    /// <typeparam name="TContext">Тип класса контекста данных для состояний. / The type of the data context class for the states.</typeparam>
+    /// <typeparam name="TContext">Тип класса контекста данных для состояний.<br/><br/>The type of the data context class for the states.</typeparam>
     [Serializable]
     public abstract class Condition<TContext> where TContext : class
     {
@@ -43,8 +43,8 @@ namespace CrystalEngine.HFSM
         /// <br/><br/>
         /// Internal method for computing the logical condition, implemented by specific subclasses.
         /// </summary>
-        /// <param name="context">Контекст данных машины состояний. / The data context of the state machine.</param>
-        /// <returns>True, если условие выполнено; иначе false. / True if the condition is met; otherwise, false.</returns>
+        /// <param name="context">Контекст данных машины состояний.<br/><br/>The data context of the state machine.</param>
+        /// <returns>True, если условие выполнено; иначе false.<br/><br/>True if the condition is met; otherwise, false.</returns>
         protected abstract bool Evaluate(TContext context);
 
         /// <summary>
@@ -52,8 +52,8 @@ namespace CrystalEngine.HFSM
         /// <br/><br/>
         /// Checks the evaluation of the condition, automatically applying inversion if it is enabled.
         /// </summary>
-        /// <param name="context">Контекст данных машины состояний. / The data context of the state machine.</param>
-        /// <returns>Результирующее логическое значение с учетом флага инверсии. / The resulting boolean value considering the inversion flag.</returns>
+        /// <param name="context">Контекст данных машины состояний.<br/><br/>The data context of the state machine.</param>
+        /// <returns>Результирующее логическое значение с учетом флага инверсии.<br/><br/>The resulting boolean value considering the inversion flag.</returns>
         public bool Check(TContext context)
         {
             return _invert ? !Evaluate(context) : Evaluate(context);

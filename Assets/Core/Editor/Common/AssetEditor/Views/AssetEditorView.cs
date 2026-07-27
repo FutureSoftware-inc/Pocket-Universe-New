@@ -1,6 +1,5 @@
 using System;
 using UnityEditor;
-using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace CrystalEditor
@@ -8,25 +7,23 @@ namespace CrystalEditor
     public abstract class AssetEditorView
     {
         protected EditorWindow HostWindow { get; private set; }
+        protected VisualElement TargetContainer { get; private set; }
 
         /// <summary>
-        /// Контейнер внутри главного окна, выделенный под это представление.
+        /// Обязательный тип данных, с которым умеет работать данный модуль.
         /// </summary>
-        protected VisualElement TargetContainer { get; private set; }
+        public abstract Type TargetAssetType { get; }
 
         public void Initialize(EditorWindow hostWindow, VisualElement targetContainer)
         {
             HostWindow = hostWindow ?? throw new ArgumentNullException(nameof(hostWindow));
             TargetContainer = targetContainer ?? throw new ArgumentNullException(nameof(targetContainer));
-
-            // Очищаем правый экран от старых модулей перед отрисовкой своего UI
             TargetContainer.Clear();
-
             OnInitialize();
         }
 
         protected abstract void OnInitialize();
-        public abstract void OpenAsset(ScriptableObject asset);
+        public abstract void OpenTarget(IEditorTarget target);
         public abstract void OnDisable();
     }
 }

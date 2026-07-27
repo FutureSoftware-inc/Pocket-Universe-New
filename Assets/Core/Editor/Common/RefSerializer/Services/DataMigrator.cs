@@ -19,8 +19,8 @@ namespace CrystalEditor
         /// <br/><br/>
         /// Transfers values of serializable fields from the source object to the target object when their names match and types are compatible.
         /// </summary>
-        /// <param name="source">Исходный объект, откуда копируются данные. / The source object from which data is copied.</param>
-        /// <param name="target">Целевой объект, куда записываются данные. / The target object to which data is written.</param>
+        /// <param name="source">Исходный объект, откуда копируются данные.<br/><br/>The source object from which data is copied.</param>
+        /// <param name="target">Целевой объект, куда записываются данные.<br/><br/>The target object to which data is written.</param>
         public static void MigrateData(object source, object target)
         {
             if (source == null || target == null)
@@ -55,8 +55,8 @@ namespace CrystalEditor
         /// <br/><br/>
         /// Collects a dictionary of all serializable fields of a type, including private fields of base classes and excluding auto-properties.
         /// </summary>
-        /// <param name="type">Системный тип исследуемого объекта. / The system type of the object to examine.</param>
-        /// <returns>Словарь, где ключ — имя поля, а значение — метаданные FieldInfo. / A dictionary where the key is the field name and the value is FieldInfo metadata.</returns>
+        /// <param name="type">Системный тип исследуемого объекта.<br/><br/>The system type of the object to examine.</param>
+        /// <returns>Словарь, где ключ — имя поля, а значение — метаданные FieldInfo.<br/><br/>A dictionary where the key is the field name and the value is FieldInfo metadata.</returns>
         private static Dictionary<string, FieldInfo> GetAllFields(Type type)
         {
             Dictionary<string, FieldInfo> fieldsMap = new Dictionary<string, FieldInfo>();

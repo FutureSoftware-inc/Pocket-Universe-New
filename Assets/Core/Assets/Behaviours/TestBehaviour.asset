@@ -12,4 +12,23 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f9aac241b49c14740b06291770862531, type: 3}
   m_Name: TestBehaviour
   m_EditorClassIdentifier: Assembly-CSharp::Crystal.HFSM.BehaviourGraphData
-  _editorNodes: []
+  _editorNodes:
+  - _guid: 
+    _position: {x: 0, y: 0}
+    _nodeName: 
+  - _guid: 
+    _position: {x: 0, y: 0}
+    _nodeName: 
+  _runtimeStates:
+  - rid: 7003737936792125510
+  - rid: -2
+  references:
+    version: 2
+    RefIds:
+    - rid: -2
+      type: {class: , ns: , asm: }
+    - rid: 7003737936792125510
+      type: {class: 'State`1[[CrystalEngine.IBlackboardProvider, Assembly-CSharp]]', ns: CrystalEngine.HFSM, asm: Assembly-CSharp}
+      data:
+        _stateName: 
+        _transitions: []

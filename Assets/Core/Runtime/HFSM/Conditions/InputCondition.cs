@@ -9,7 +9,7 @@ namespace CrystalEngine.HFSM
     /// <br/><br/>
     /// A concrete condition implementation that evaluates user input (key presses) using Unity's standard Input system.
     /// </summary>
-    /// <typeparam name="TContext">Тип класса контекста данных для состояний. / The type of the data context class for the states.</typeparam>
+    /// <typeparam name="TContext">Тип класса контекста данных для состояний.<br/><br/>The type of the data context class for the states.</typeparam>
     [Serializable]
     [SelectorTooltip("Проверяет, нажата ли определенная клавиша на клавиатуре в текущем кадре.")]
     public sealed class InputCondition<TContext> : Condition<TContext> where TContext : class, IBlackboardProvider
@@ -33,8 +33,8 @@ namespace CrystalEngine.HFSM
         /// <br/><br/>
         /// Queries the state of the specified key depending on the selected input check type.
         /// </summary>
-        /// <param name="context">Контекст данных машины состояний. / The data context of the state machine.</param>
-        /// <returns>True, если состояние клавиши соответствует выбранному типу проверки; иначе false. / True if the key state matches the selected check type; otherwise, false.</returns>
+        /// <param name="context">Контекст данных машины состояний.<br/><br/>The data context of the state machine.</param>
+        /// <returns>True, если состояние клавиши соответствует выбранному типу проверки; иначе false.<br/><br/>True if the key state matches the selected check type; otherwise, false.</returns>
         protected override bool Evaluate(TContext context)
         {
             return _checkType switch

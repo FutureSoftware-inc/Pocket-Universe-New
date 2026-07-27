@@ -21,7 +21,9 @@ namespace CrystalEditor
         /// <br/><br/>
         /// Compiled regex to locate and parse managed reference class identifiers inside Unity's YAML format.
         /// </summary>
-        private static readonly Regex RefIdentifierRegex = new Regex(@"managedReferenceClassIdentifier:\s*([^:\r\n]+):([^:\r\n]+):([^:\r\n]+)", RegexOptions.Compiled);
+        private static readonly Regex RefIdentifierRegex = new Regex(
+            @"managedReferenceClassIdentifier:\s*(?:assembly:\s*(?<asm>[^,\r\n]+)\s*class:\s*(?<cls>[^\r\n]+)|(?<old>[^:\r\n]+):(?<oldAsm>[^:\r\n]+):(?<oldCls>[^\r\n]+))",
+            RegexOptions.Compiled);
 
         /// <summary>
         /// Контейнер данных, содержащий результаты анализа поврежденного ассета проекта.
@@ -57,11 +59,11 @@ namespace CrystalEditor
         /// <br/><br/>
         /// Scans the entire project for Prefabs and ScriptableObjects, evaluating raw YAML data for the presence of non-existent C# types.
         /// </summary>
-        /// <returns>Список результатов сканирования с подробной информацией обо всех поврежденных ассетах. / A list of scanning results containing detailed information about all corrupted assets.</returns>
+        /// <returns>Список результатов сканирования с подробной информацией обо всех поврежденных ассетах.<br/><br/>A list of scanning results containing detailed information about all corrupted assets.</returns>
         public static List<BrokenAssetResult> ScanProjectForBrokenReferences()
         {
             var results = new List<BrokenAssetResult>();
-            string[] guids = AssetDatabase.FindAssets("t:Prefab t:ScriptableObject");
+            string[] guids = AssetDatabase.FindAssets("t:Prefab t:ScriptableObject t:Scene");
             foreach (string guid in guids)
             {
                 string path = AssetDatabase.GUIDToAssetPath(guid);
@@ -93,10 +95,10 @@ namespace CrystalEditor
         /// <br/><br/>
         /// Performs a direct string replacement of the old class name with the new one inside the asset file and forces a re-import in Unity.
         /// </summary>
-        /// <param name="assetPath">Путь к восстанавливаемому файлу ассета. / The path to the asset file being repaired.</param>
-        /// <param name="oldClassName">Старое (поврежденное) имя класса. / The old (broken) class name.</param>
-        /// <param name="newClassName">Новое актуальное имя класса для замены. / The new valid class name to substitute.</param>
-        /// <returns>True, если замена выполнена успешно и ассет обновлен; иначе false. / True if the replacement succeeded and the asset was updated; otherwise, false.</returns>
+        /// <param name="assetPath">Путь к восстанавливаемому файлу ассета.<br/><br/>The path to the asset file being repaired.</param>
+        /// <param name="oldClassName">Старое (поврежденное) имя класса.<br/><br/>The old (broken) class name.</param>
+        /// <param name="newClassName">Новое актуальное имя класса для замены.<br/><br/>The new valid class name to substitute.</param>
+        /// <returns>True, если замена выполнена успешно и ассет обновлен; иначе false.<br/><br/>True if the replacement succeeded and the asset was updated; otherwise, false.</returns>
         public static bool FixBrokenReference(string assetPath, string oldClassName, string newClassName)
         {
             if (!File.Exists(assetPath)) return false;
@@ -121,8 +123,8 @@ namespace CrystalEditor
         /// <br/><br/>
         /// Checks for the existence of the specified class type in the current application domain assemblies, considering project base namespaces.
         /// </summary>
-        /// <param name="shortClassName">Короткое или частичное имя проверяемого класса. / The short or partial name of the class to validate.</param>
-        /// <returns>True, если тип найден хотя бы в одной из пользовательских сборок; иначе false. / True if the type is resolved in at least one user assembly; otherwise, false.</returns>
+        /// <param name="shortClassName">Короткое или частичное имя проверяемого класса.<br/><br/>The short or partial name of the class to validate.</param>
+        /// <returns>True, если тип найден хотя бы в одной из пользовательских сборок; иначе false.<br/><br/>True if the type is resolved in at least one user assembly; otherwise, false.</returns>
         private static bool TypeExistsInProject(string shortClassName)
         {
             foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())

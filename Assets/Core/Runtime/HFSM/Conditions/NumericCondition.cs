@@ -10,7 +10,7 @@ namespace CrystalEngine.HFSM
     /// A concrete condition implementation that performs mathematical comparison of numeric values within the Blackboard.
     /// Automatically retrieves and matches data of the required primitive type using the universal AnyNumber container.
     /// </summary>
-    /// <typeparam name="TContext">Тип класса контекста данных, реализующий <see cref="IBlackboardProvider"/>. / The type of the data context class implementing <see cref="IBlackboardProvider"/>.</typeparam>
+    /// <typeparam name="TContext">Тип класса контекста данных, реализующий <see cref="IBlackboardProvider"/>.<br/><br/>The type of the data context class implementing <see cref="IBlackboardProvider"/>.</typeparam>
     [Serializable]
     public sealed class NumericCondition<TContext> : Condition<TContext> where TContext : class, IBlackboardProvider
     {
@@ -33,8 +33,8 @@ namespace CrystalEngine.HFSM
         /// <br/><br/>
         /// Retrieves the current value from the Blackboard based on the expected type and performs the selected mathematical evaluation.
         /// </summary>
-        /// <param name="context">Контекст данных машины состояний, содержащий Blackboard. / The state machine data context containing the Blackboard.</param>
-        /// <returns>True, если результат сравнения истинен; иначе false. / True if the comparison result evaluates to true; otherwise, false.</returns>
+        /// <param name="context">Контекст данных машины состояний, содержащий Blackboard.<br/><br/>The state machine data context containing the Blackboard.</param>
+        /// <returns>True, если результат сравнения истинен; иначе false.<br/><br/>True if the comparison result evaluates to true; otherwise, false.</returns>
         protected override bool Evaluate(TContext context)
         {
             if (_comparisonType == ComparisonType.None) return false;
@@ -55,8 +55,8 @@ namespace CrystalEngine.HFSM
         /// <br/><br/>
         /// Retrieves a strongly typed numeric value from the data board, dynamically adapting to the specified type of the AnyNumber structure.
         /// </summary>
-        /// <param name="blackboard">Экземпляр доски данных для чтения числового свойства. / The blackboard instance to read the numeric property from.</param>
-        /// <returns>Экземпляр универсального числа AnyNumber с прочитанным значением. / An AnyNumber instance holding the retrieved value.</returns>
+        /// <param name="blackboard">Экземпляр доски данных для чтения числового свойства.<br/><br/>The blackboard instance to read the numeric property from.</param>
+        /// <returns>Экземпляр универсального числа AnyNumber с прочитанным значением.<br/><br/>An AnyNumber instance holding the retrieved value.</returns>
         private AnyNumber GetValueFromBlackboard(Blackboard blackboard)
         {
             return _selectionValue.CurrentType switch

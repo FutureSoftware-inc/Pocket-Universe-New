@@ -17,9 +17,9 @@ namespace CrystalEditor
         /// Creates an instance of the specified type using its default (parameterless) constructor.
         /// Logs a detailed error message to the Unity console in case of failure.
         /// </summary>
-        /// <param name="type">Системный тип создаваемого объекта. Не может быть null. / The system type of the object to create. Cannot be null.</param>
-        /// <returns>Новый экземпляр объекта или null при возникновении ошибки. / A new instance of the object, or null if an error occurs.</returns>
-        /// <exception cref="ArgumentNullException">Вызывается, если переданный параметр <paramref name="type"/> равен null. / Thrown when the specified <paramref name="type"/> parameter is null.</exception>
+        /// <param name="type">Системный тип создаваемого объекта. Не может быть null.<br/><br/>The system type of the object to create. Cannot be null.</param>
+        /// <returns>Новый экземпляр объекта или null при возникновении ошибки.<br/><br/>A new instance of the object, or null if an error occurs.</returns>
+        /// <exception cref="ArgumentNullException">Вызывается, если переданный параметр <paramref name="type"/> равен null.<br/><br/>Thrown when the specified <paramref name="type"/> parameter is null.</exception>
         public static object CreateInstance(Type type)
         {
             if (type == null)
