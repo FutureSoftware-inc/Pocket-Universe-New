@@ -1,4 +1,4 @@
-namespace CrystalEngine.HFSM
+namespace CrystalEngine
 {
     /// <summary>
     /// Базовый интерфейс-маркер для всех типов состояний в машине поведений.

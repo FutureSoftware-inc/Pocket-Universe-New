@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace CrystalEngine.HFSM
+namespace CrystalEngine
 {
     /// <summary>
     /// Класс, представляющий переход между состояниями в машине состояний (HFSM).

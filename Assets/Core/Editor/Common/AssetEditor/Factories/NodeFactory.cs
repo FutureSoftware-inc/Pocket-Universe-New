@@ -1,10 +1,9 @@
 using System.Collections.Generic;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
-using CrystalEngine.HFSM;
 using CrystalEngine;
 
-namespace CrystalEditor
+namespace CrystalEngineEditor
 {
     public static class NodeFactory
     {

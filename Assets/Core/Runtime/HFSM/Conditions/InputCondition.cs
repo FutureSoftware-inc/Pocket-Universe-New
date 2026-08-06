@@ -2,7 +2,7 @@ using System;
 using UnityEngine;
 using CrystalEngine;
 
-namespace CrystalEngine.HFSM
+namespace CrystalEngine
 {
     /// <summary>
     /// Конкретная реализация условия, проверяющая пользовательский ввод (нажатие клавиш) через стандартную систему Input в Unity.

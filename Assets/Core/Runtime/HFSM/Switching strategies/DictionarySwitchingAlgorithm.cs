@@ -4,7 +4,7 @@ using System.Threading;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 
-namespace CrystalEngine.HFSM
+namespace CrystalEngine
 {
     /// <summary>
     /// Алгоритм переключения состояний на основе словаря с полной поддержкой синхронных и асинхронных состояний.

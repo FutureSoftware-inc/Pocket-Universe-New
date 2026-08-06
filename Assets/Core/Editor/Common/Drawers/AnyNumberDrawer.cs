@@ -4,7 +4,7 @@ using UnityEditor.UIElements;
 using UnityEngine.UIElements;
 using CrystalEngine;
 
-namespace CrystalEditor
+namespace CrystalEngineEditor
 {
     /// <summary>
     /// Кастомный отрисовщик свойств (PropertyDrawer) для универсальной числовой структуры <see cref="AnyNumber"/>.

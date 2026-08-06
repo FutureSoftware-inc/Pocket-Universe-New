@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using CrystalEngine;
 
-namespace CrystalEngine.HFSM
+namespace CrystalEngine
 {
     /// <summary>
     /// Базовая реализация синхронного состояния для иерархической машины состояний (HFSM).

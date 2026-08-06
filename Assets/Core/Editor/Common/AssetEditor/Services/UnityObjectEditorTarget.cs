@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace CrystalEditor
+namespace CrystalEngineEditor
 {
     public class UnityObjectEditorTarget : IEditorTarget
     {

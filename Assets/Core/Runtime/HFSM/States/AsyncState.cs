@@ -4,7 +4,7 @@ using System.Threading;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 
-namespace CrystalEngine.HFSM
+namespace CrystalEngine
 {
     /// <summary>
     /// Абстрактная базовая реализация асинхронного состояния для иерархической машины состояний (HFSM).
@@ -15,7 +15,7 @@ namespace CrystalEngine.HFSM
     /// </summary>
     /// <typeparam name="TContext">Тип класса контекста данных для состояний.<br/><br/>The type of the data context class for the states.</typeparam>
     [Serializable]
-    public abstract class AsyncState<TContext> : IAsyncState<TContext> where TContext : class
+    public class AsyncState<TContext> : IAsyncState<TContext> where TContext : class
     {
         /// <summary>
         /// Имя состояния для его идентификации и отладки в инспекторе или графе.

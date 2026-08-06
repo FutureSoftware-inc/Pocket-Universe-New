@@ -1,8 +1,8 @@
-using CrystalEngine.HFSM;
+using CrystalEngine;
 using System;
 using System.Collections.Generic;
 
-namespace CrystalEditor
+namespace CrystalEngineEditor
 {
     public static class EditorViewRegistry
     {

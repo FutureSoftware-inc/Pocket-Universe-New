@@ -1,4 +1,4 @@
-namespace CrystalEngine.HFSM
+namespace CrystalEngine
 {
     /// <summary>
     /// Определяет интерфейс команды для выполнения атомарных игровых действий или операций над контекстом.

@@ -1,384 +1,220 @@
+using CrystalEngine;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEditor;
-using UnityEditor.IMGUI.Controls;
 using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
-using CrystalEngine;
 
-namespace CrystalEditor
+namespace CrystalEngineEditor
 {
-    /// <summary>
-    /// Кастомный отрисовщик свойств (PropertyDrawer) для полей с атрибутом <see cref="SerializeReferenceSelectorAttribute"/>.
-    /// Реализует удобный визуальный интерфейс для работы с полиморфной сериализацией [SerializeReference].
-    /// <br/><br/>
-    /// A custom property drawer for fields marked with <see cref="SerializeReferenceSelectorAttribute"/>.
-    /// Implements a user-friendly visual interface for working with [SerializeReference] polymorphic serialization.
-    /// </summary>
     [CustomPropertyDrawer(typeof(SerializeReferenceSelectorAttribute))]
     public class SerializeReferenceSelectorDrawer : PropertyDrawer
     {
-        private readonly AdvancedDropdownState _dropdownState = new();
-        private Type _cachedBaseType;
-        private string _cachedBaseTypeName;
+        internal const string SELECT_TEXT = "Select";
+        internal const string SELECTOR_BUTTON_NAME = "selector-button";
+        internal const string CONTENT_AREA_NAME = "content-area";
 
-        /// <summary>
-        /// Создает и настраивает структуру визуальных элементов UI Toolkit для отображения полиморфного поля в инспекторе.
-        /// <br/><br/>
-        /// Creates and configures the visual element hierarchy using UI Toolkit to display the polymorphic field in the Inspector.
-        /// </summary>
-        /// <param name="property">Сериализованное управляемое свойство типа ManagedReference.<br/><br/>The serialized managed reference property.</param>
-        /// <returns>Корневой визуальный элемент интерфейса свойства.<br/><br/>The root visual element of the property GUI.</returns>
+        private VisualElement _root;
+        private VisualElement _header;
+        private Button _selectorButton;
+        private VisualElement _contentArea;
+
+        private Button _openScriptButton;
+        private Button _deleteButton;
+
         public override VisualElement CreatePropertyGUI(SerializedProperty property)
         {
-            // Если поле не использует [SerializeReference] (ManagedReference), рисуем его стандартно
-            if (property.propertyType != SerializedPropertyType.ManagedReference)
-            {
-                return new PropertyField(property);
-            }
+            _root = new VisualElement();
+            _header = CreateHeader(property);
+            _selectorButton = CreateSelectorButton();
+            _contentArea = CreateContetArea();
+            _openScriptButton = CreateIconButton("d_ScriptableObject Icon", "Open C# Script Code");
+            _deleteButton = CreateIconButton("d_TreeEditor.Trash", "Delete Instance");
+            BuildContextMenu(property);
+            _selectorButton.clicked += () => OnSelectorButtonClicked(property);
+            _openScriptButton.clicked += () => OnOpenScriptClicked(property);
+            _deleteButton.clicked += () => OnDeleteClicked(property);
+            _header.Add(_selectorButton);
+            _header.Add(_openScriptButton);
+            _header.Add(_deleteButton);
+            _root.Add(_header);
+            _root.Add(_contentArea);
 
-            if (_cachedBaseType == null)
-            {
-                _cachedBaseType = GetBaseType();
-                _cachedBaseTypeName = GetBaseTypeName(_cachedBaseType);
-            }
-
-            VisualElement root = new VisualElement();
-
-            VisualElement header = CreateHeader(property);
-            root.Add(header);
-
-            Type currentValue = property.managedReferenceValue?.GetType();
-            Button selectorButton = CreateSelectorButton(currentValue);
-            header.Add(selectorButton);
-
-            Button resetButton = CreateResetButton(currentValue);
-            header.Add(resetButton);
-
-            Button openScriptButton = CreateOpenScriptButton(currentValue);
-            header.Add(openScriptButton);
-
-            VisualElement fieldsContainer = CreateFieldsContainer();
-            root.Add(fieldsContainer);
-
-            // Регистрация событий нажатия кнопок и контекстного меню
-            selectorButton.clicked += () => ShowDropdownMenu(property, _cachedBaseType, selectorButton, fieldsContainer, resetButton, openScriptButton);
-            resetButton.clicked += () => RegistryValueChange(null, property, fieldsContainer, selectorButton, resetButton, openScriptButton);
-            openScriptButton.clicked += () => OpenScriptFile(property);
-
-            selectorButton.RegisterCallback<ContextClickEvent>(evt => ShowContextMenu(evt, property, fieldsContainer, selectorButton, resetButton, openScriptButton));
-
-            if (currentValue != null)
-            {
-                RefreshField(property, fieldsContainer);
-            }
-
-            return root;
+            Refresh(property);
+            _root.TrackPropertyValue(property, (prop) => Refresh(prop));
+            return _root;
         }
 
-        /// <summary>
-        /// Создает заголовочную область элемента управления (плашка с названием свойства).
-        /// <br/><br/>
-        /// Creates the header section of the control (a panel displaying the property name).
-        /// </summary>
         private VisualElement CreateHeader(SerializedProperty property)
         {
             VisualElement header = new VisualElement();
             header.style.flexDirection = FlexDirection.Row;
             header.style.justifyContent = Justify.SpaceBetween;
-            header.style.marginBottom = 2f;
+            header.style.alignItems = Align.Center;
+            header.style.marginBottom = 4;
 
-            Label propertyLabel = new Label(property.displayName);
-            propertyLabel.style.unityTextAlign = TextAnchor.MiddleLeft;
-            header.Add(propertyLabel);
-
+            SerializeReferenceSelectorAttribute attribute = this.attribute as SerializeReferenceSelectorAttribute;
+            Label label = new Label()
+            {
+                text = !string.IsNullOrEmpty(attribute?.Title) ? attribute.Title : property.displayName
+            };
+            label.style.unityFontStyleAndWeight = FontStyle.Bold;
+            header.Add(label);
             return header;
         }
 
-        /// <summary>
-        /// Создает кнопку-селектор, отображающую понятное имя текущего выбранного типа.
-        /// <br/><br/>
-        /// Creates the selector button displaying the user-friendly name of the currently selected type.
-        /// </summary>
-        private Button CreateSelectorButton(Type currentValue)
+        private Button CreateSelectorButton()
         {
-            Button selectorButton = new Button
+            _selectorButton = new Button()
             {
-                text = GetCleanTypeName(currentValue, _cachedBaseType)
+                name = SELECTOR_BUTTON_NAME,
             };
-            selectorButton.style.flexGrow = 1f;
-            selectorButton.style.marginLeft = 4f;
-
-            return selectorButton;
+            _selectorButton.style.flexGrow = 1;
+            _selectorButton.style.marginLeft = 8;
+            return _selectorButton;
         }
 
-        /// <summary>
-        /// Создает кнопку сброса значения (установки в null) в форме крестика.
-        /// <br/><br/>
-        /// Creates the reset button (setting value to null) represented as a cross icon.
-        /// </summary>
-        private Button CreateResetButton(Type currentValue)
+        private VisualElement CreateContetArea()
         {
-            Button resetButton = new Button { text = "✕" };
-            resetButton.style.width = 20f;
-            resetButton.style.height = 18f;
-            resetButton.style.marginLeft = 2f;
-            resetButton.style.paddingLeft = 0f;
-            resetButton.style.paddingRight = 0f;
-            resetButton.style.color = new Color(0.7f, 0.3f, 0.3f);
-            resetButton.style.unityFontStyleAndWeight = FontStyle.Bold;
-            resetButton.style.display = currentValue != null ? DisplayStyle.Flex : DisplayStyle.None;
-
-            return resetButton;
-        }
-
-        /// <summary>
-        /// Создает кнопку со значком C# скрипта для мгновенного открытия файла исходного кода класса.
-        /// <br/><br/>
-        /// Creates the button with a C# script icon for instantly opening the class source code file.
-        /// </summary>
-        private Button CreateOpenScriptButton(Type currentValue)
-        {
-            Button openScriptButton = new Button();
-            openScriptButton.style.width = 20f;
-            openScriptButton.style.height = 18f;
-            openScriptButton.style.marginLeft = 2f;
-            openScriptButton.style.paddingLeft = 0f;
-            openScriptButton.style.paddingRight = 0f;
-
-            Texture2D scriptIcon = EditorGUIUtility.IconContent("cs Script Icon").image as Texture2D;
-            if (scriptIcon != null)
+            VisualElement contetArea = new VisualElement()
             {
-                openScriptButton.style.backgroundSize = new BackgroundSize(BackgroundSizeType.Contain);
-                openScriptButton.style.backgroundImage = scriptIcon;
+                name = CONTENT_AREA_NAME
+            };
+            // Небольшой отступ слева для вложенных полей, создающий красивую иерархию (сдвиг вправо)
+            contetArea.style.marginLeft = 15;
+            return contetArea;
+        }
+
+        // Универсальный генератор маленьких квадратных кнопок с иконками Unity
+        private Button CreateIconButton(string iconName, string tooltip)
+        {
+            Button btn = new Button();
+            btn.tooltip = tooltip;
+            btn.style.width = 20;
+            btn.style.height = 18;
+            btn.style.marginLeft = 2;
+            btn.style.paddingLeft = 0;
+            btn.style.paddingRight = 0;
+
+            // Загружаем родную иконку редактора Unity по ее внутреннему имени
+            Texture2D icon = EditorGUIUtility.IconContent(iconName)?.image as Texture2D;
+            if (icon != null)
+            {
+                btn.style.backgroundImage = icon;
+                // Заставляем иконку аккуратно вписаться в размеры кнопки
+                btn.style.unityBackgroundScaleMode = ScaleMode.ScaleToFit;
             }
-            else
-            {
-                openScriptButton.text = "#";
-            }
-
-            openScriptButton.style.display = currentValue != null ? DisplayStyle.Flex : DisplayStyle.None;
-
-            return openScriptButton;
+            return btn;
         }
 
-        /// <summary>
-        /// Создает контейнер-подложку, в который будут динамически отрисовываться внутренние поля выбранного класса.
-        /// <br/><br/>
-        /// Creates a container layout where internal fields of the selected class will be dynamically drawn.
-        /// </summary>
-        private VisualElement CreateFieldsContainer()
+        private void BuildContextMenu(SerializedProperty property)
         {
-            VisualElement fieldsContainer = new VisualElement();
-            fieldsContainer.style.marginLeft = 15f;
+            _selectorButton.AddManipulator(new ContextualMenuManipulator(menuEvt =>
+            {
+                menuEvt.menu.AppendAction("Cut",
+                    action => EditorClipboard.Cut(property),
+                    property.managedReferenceValue != null ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Disabled);
 
-            return fieldsContainer;
+                menuEvt.menu.AppendAction("Copy",
+                    action => EditorClipboard.Copy(property),
+                    property.managedReferenceValue != null ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Disabled);
+
+                menuEvt.menu.AppendAction("Paste",
+                    action => EditorClipboard.Paste(property),
+                    EditorClipboard.CanPaste(property) ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Disabled);
+
+                menuEvt.menu.AppendSeparator();
+
+                menuEvt.menu.AppendAction("Duplicate",
+                    action => EditorClipboard.Duplicate(property),
+                    property.managedReferenceValue != null ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Disabled);
+
+                menuEvt.menu.AppendAction("Delete",
+                    action => OnDeleteClicked(property),
+                    property.managedReferenceValue != null ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Disabled);
+            }));
         }
 
-        /// <summary>
-        /// Инициализирует и открывает кастомное расширенное выпадающее меню со списком всех доступных реализаций базового типа.
-        /// <br/><br/>
-        /// Initializes and opens the custom advanced dropdown menu displaying all available implementations of the base type.
-        /// </summary>
-        private void ShowDropdownMenu(SerializedProperty property, Type baseType, Button selectorButton, VisualElement fieldsContainer, Button resetButton, Button openScriptButton)
+        // ИСПРАВЛЕНО: Убрана лишняя кнопка из аргументов, берется поле класса
+        private void OnSelectorButtonClicked(SerializedProperty property)
         {
-            IReadOnlyList<Type> implementations = TypeRegistry.GetImplementations(baseType);
-            Rect buttonRect = selectorButton.worldBound;
-
-            var dropdown = new SerializeReferenceAdvancedDropdown(baseType, implementations, selectedType =>
-            {
-                RegistryValueChange(selectedType, property, fieldsContainer, selectorButton, resetButton, openScriptButton);
-            }, _dropdownState);
-
+            Rect buttonRect = _selectorButton.worldBound;
+            SelectorDropdownMenu dropdown = new SelectorDropdownMenu(property);
             dropdown.Show(buttonRect);
         }
-        /// <summary>
-        /// Формирует и отображает контекстное меню (Copy/Paste) при нажатии правой кнопкой мыши по селектору типа.
-        /// <br/><br/>
-        /// Constructs and displays the context menu (Copy/Paste) upon right-clicking the type selector.
-        /// </summary>
-        private void ShowContextMenu(ContextClickEvent evt, SerializedProperty property, VisualElement fieldsContainer, Button selectorButton, Button resetButton, Button openScriptButton)
+
+        // ЛОГИКА КНОПКИ: Поиск MonoScript типа в базе ассетов и открытие его в IDE
+        private void OnOpenScriptClicked(SerializedProperty property)
         {
-            GenericMenu menu = new GenericMenu();
+            if (property.managedReferenceValue == null) return;
 
-            if (property.managedReferenceValue != null)
-            {
-                menu.AddItem(new GUIContent("Copy"), false, () => SelectorCopyPaste.Copy(property.managedReferenceValue));
-            }
-            else
-            {
-                menu.AddDisabledItem(new GUIContent("Copy"));
-            }
+            string typeName = property.managedReferenceValue.GetType().Name;
+            // Ищем скрипт в проекте по имени его класса
+            string[] guids = AssetDatabase.FindAssets($"t:MonoScript {typeName}");
 
-            if (SelectorCopyPaste.CanPaste(_cachedBaseType))
+            if (guids.Length > 0)
             {
-                menu.AddItem(new GUIContent("Paste"), false, () =>
-                {
-                    object pastedObject = SelectorCopyPaste.Paste();
-                    if (pastedObject != null)
-                    {
-                        RegistryValueChange(pastedObject.GetType(), property, fieldsContainer, selectorButton, resetButton, openScriptButton);
-                        property.managedReferenceValue = pastedObject;
-                        property.serializedObject.ApplyModifiedProperties();
-                        fieldsContainer.Clear();
-                        RefreshField(property, fieldsContainer);
-                    }
-                });
-            }
-            else
-            {
-                menu.AddDisabledItem(new GUIContent("Paste"));
-            }
-
-            menu.ShowAsContext();
-            evt.StopPropagation();
-        }
-
-        /// <summary>
-        /// Перерисовывает и связывает (Bind) внутренние сериализуемые поля выбранного класса внутри контейнера.
-        /// <br/><br/>
-        /// Redraws and binds internal serializable fields of the selected class inside the target container.
-        /// </summary>
-        private void RefreshField(SerializedProperty property, VisualElement target)
-        {
-            PropertyField initialField = new PropertyField(property, _cachedBaseTypeName);
-
-            initialField.RegisterCallback<AttachToPanelEvent>(@event =>
-            {
-                ExpandFoldout(initialField);
-            });
-            initialField.Bind(property.serializedObject);
-            target.Add(initialField);
-        }
-
-        /// <summary>
-        /// Определяет базовый тип поля через рефлексию, корректно обрабатывая массивы и обобщенные списки List.
-        /// <br/><br/>
-        /// Determines the base type of the field via reflection, correctly handling arrays and generic List types.
-        /// </summary>
-        private Type GetBaseType()
-        {
-            Type fieldType = fieldInfo.FieldType;
-            if (fieldType.IsArray)
-            {
-                return fieldType.GetElementType();
-            }
-            if (fieldType.IsGenericType && fieldType.GetGenericTypeDefinition() == typeof(List<>))
-            {
-                return fieldType.GetGenericArguments()[0];
-            }
-            return fieldType;
-        }
-
-        /// <summary>
-        /// Регистрирует изменение типа данных, осуществляет миграцию полей (DataMigrator) со старого объекта на новый и обновляет UI элементы.
-        /// <br/><br/>
-        /// Registers the data type change, performs property migration (DataMigrator) from the old object to the new one, and updates UI elements.
-        /// </summary>
-        private void RegistryValueChange(Type newValue, SerializedProperty property, VisualElement fieldsContainer, Button selectorButton, Button resetButton, Button openScriptButton)
-        {
-            Undo.RecordObject(property.serializedObject.targetObject, "Change SerializeReference Type");
-            object oldObject = property.managedReferenceValue;
-            object newObject = newValue != null ? ReferenceFactory.CreateInstance(newValue) : null;
-            if (oldObject != null && newObject != null)
-            {
-                DataMigrator.MigrateData(oldObject, newObject);
-            }
-            property.managedReferenceValue = newObject;
-            property.serializedObject.ApplyModifiedProperties();
-            selectorButton.text = GetCleanTypeName(newValue, _cachedBaseType);
-            fieldsContainer.Clear();
-            bool hasValue = newValue != null;
-            resetButton.style.display = hasValue ? DisplayStyle.Flex : DisplayStyle.None;
-            openScriptButton.style.display = hasValue ? DisplayStyle.Flex : DisplayStyle.None;
-            if (hasValue)
-            {
-                RefreshField(property, fieldsContainer);
-            }
-        }
-
-        /// <summary>
-        /// Автоматически разворачивает элемент Foldout при его появлении в инспекторе для мгновенного доступа к полям.
-        /// <br/><br/>
-        /// Automatically expands the Foldout element upon its appearance in the Inspector for instant field access.
-        /// </summary>
-        private void ExpandFoldout(PropertyField field)
-        {
-            Foldout foldout = field.Q<Foldout>();
-            if (foldout != null)
-            {
-                foldout.value = true;
-            }
-        }
-
-        /// <summary>
-        /// Находит исходный C# файл текущего класса через AssetDatabase и открывает его во внешнем IDE-редакторе.
-        /// <br/><br/>
-        /// Finds the source C# file of the current class using AssetDatabase and opens it inside an external IDE editor.
-        /// </summary>
-        private void OpenScriptFile(SerializedProperty property)
-        {
-            object managedObject = property.managedReferenceValue;
-            if (managedObject == null) return;
-            Type type = managedObject.GetType();
-            if (type.IsGenericType) { type = type.GetGenericTypeDefinition(); }
-            string searchName = type.Name.Contains('`') ? type.Name.Split('`')[0] : type.Name;
-            string[] guids = AssetDatabase.FindAssets($"{searchName} t:MonoScript");
-            if (guids == null || guids.Length == 0)
-            {
-                Debug.LogWarning($"[Selector] Не удалось найти C# файл для класса: {searchName}");
-                return;
-            }
-            foreach (string guid in guids)
-            {
-                string assetPath = AssetDatabase.GUIDToAssetPath(guid);
-                MonoScript script = AssetDatabase.LoadAssetAtPath<MonoScript>(assetPath);
-                if (script != null && script.GetClass() == type)
+                string path = AssetDatabase.GUIDToAssetPath(guids[0]);
+                MonoScript script = AssetDatabase.LoadAssetAtPath<MonoScript>(path);
+                if (script != null)
                 {
                     AssetDatabase.OpenAsset(script);
                     return;
                 }
             }
-            string backupPath = AssetDatabase.GUIDToAssetPath(guids[0]);
-            MonoScript backupScript = AssetDatabase.LoadAssetAtPath<MonoScript>(backupPath);
-            if (backupScript != null)
+            Debug.LogWarning($"[CrystalEngine] Could not find C# script asset for type '{typeName}'.");
+        }
+
+        // ЛОГИКА КНОПКИ: Сброс инстанса в null
+        private void OnDeleteClicked(SerializedProperty property)
+        {
+            property.managedReferenceValue = null;
+            property.serializedObject.ApplyModifiedProperties();
+        }
+
+        private void Refresh(SerializedProperty property)
+        {
+            _contentArea.Clear();
+
+            if (property.managedReferenceValue != null)
             {
-                AssetDatabase.OpenAsset(backupScript);
+                _openScriptButton.style.display = DisplayStyle.Flex; // Показываем кнопку кода
+                _deleteButton.style.display = DisplayStyle.Flex;     // Показываем кнопку корзины
+
+                // ИСПРАВЛЕНО: Полностью убрали кривой обход TypeRegistry.
+                // Наш форматер сам залезет в инстанс, проверит атрибуты и выдаст красивое имя типа!
+                _selectorButton.text = property.GetDisplayValueName();
+                _selectorButton.style.unityFontStyleAndWeight = FontStyle.Normal;
+
+                GenerateChildProperties(property);
+            }
+            else
+            {
+                _openScriptButton.style.display = DisplayStyle.None; // Скрываем кнопку кода
+                _deleteButton.style.display = DisplayStyle.None;     // Скрываем кнопку корзины
+
+                _selectorButton.text = SELECT_TEXT;
+                _selectorButton.style.unityFontStyleAndWeight = FontStyle.Italic;
             }
         }
 
-        /// <summary>
-        /// Возвращает чистое, отформатированное имя типа, удаляя технические мета-символы дженериков (`1) и подставляя аргументы контекста.
-        /// <br/><br/>
-        /// Returns a clean, formatted type name, stripping technical generic meta-characters (`1) and appending context arguments.
-        /// </summary>
-        private string GetCleanTypeName(Type type, Type baseType)
-        {
-            if (type == null)
-                return "Select";
-            if (!type.IsGenericType)
-                return type.Name;
-            string cleanName = type.Name.Split('`')[0];
-            if (baseType.IsGenericType)
-            {
-                string contextArgs = string.Join(", ", baseType.GetGenericArguments().Select(t => t.Name));
-                return $"{cleanName}<{contextArgs}>";
-            }
-            return $"{cleanName}<>";
-        }
 
-        /// <summary>
-        /// Возвращает чистое имя базового типа без символов обобщения.
-        /// <br/><br/>
-        /// Returns the clean name of the base type without generic qualifiers.
-        /// </summary>
-        private string GetBaseTypeName(Type baseType)
+        private void GenerateChildProperties(SerializedProperty property)
         {
-            if (baseType == null)
-                return "Null";
-            return baseType.IsGenericType ? baseType.Name.Split('`')[0] : baseType.Name;
+            SerializedProperty propertyCopy = property.Copy();
+            if (propertyCopy.NextVisible(true))
+            {
+                int endDepth = property.depth;
+                do
+                {
+                    if (propertyCopy.depth <= endDepth) break;
+                    PropertyField childField = new PropertyField(propertyCopy.Copy());
+                    childField.Bind(property.serializedObject);
+                    _contentArea.Add(childField);
+                }
+                while (propertyCopy.NextVisible(false));
+            }
         }
     }
 }

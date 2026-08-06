@@ -1,13 +1,11 @@
 using CrystalEngine;
-using CrystalEngine.HFSM;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace CrystalEditor
+namespace CrystalEngineEditor
 {
     public sealed class StateGraphEditorView : AssetEditorView,
         ISavableModule,
@@ -35,8 +33,8 @@ namespace CrystalEditor
 
             // ИСПОЛЬЗУЕМ ТВОЙ СЕРВИС: Запрашиваем из TypeRegistry все типы в проекте, 
             // у которых общим предком является корневой интерфейс IStateBase
-            Type[] availableStateTypes = TypeRegistry.GetImplementations(typeof(IState<IBlackboardProvider>)).ToArray();
-            _searchController.Initialize(availableStateTypes);
+            //Type[] availableStateTypes = TypeRegistry.GetImplementations(typeof(IState<IBlackboardProvider>)).ToArray();
+            //_searchController.Initialize(availableStateTypes);
 
             // Твой неизмененный код инициализации библиотеки и монтирования элементов
             _libraryGrid = new LibraryGridComponent<BehaviourGraphData>(
@@ -142,7 +140,7 @@ namespace CrystalEditor
 
             _currentOpenedAsset.SaveGraph(nodesToSave, runtimeStatesToSave);
             SaveLoadService.Save(_currentOpenedAsset, "CrystalEngine: Save HFSM State Graph");
-            Debug.Log($"[CrystalEditor] Graph successfully synchronized: {_currentOpenedAsset.name}");
+            Debug.Log($"[CrystalEngineEditor] Graph successfully synchronized: {_currentOpenedAsset.name}");
         }
 
         private void ConfigureElementFullscreen(VisualElement element)

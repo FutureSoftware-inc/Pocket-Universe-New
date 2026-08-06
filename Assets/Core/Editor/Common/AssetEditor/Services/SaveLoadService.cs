@@ -2,7 +2,7 @@ using System;
 using UnityEditor;
 using UnityEngine;
 
-namespace CrystalEditor
+namespace CrystalEngineEditor
 {
     public static class SaveLoadService
     {

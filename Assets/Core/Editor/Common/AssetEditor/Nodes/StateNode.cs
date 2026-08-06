@@ -1,9 +1,8 @@
 using CrystalEngine;
-using CrystalEngine.HFSM; // Подключаем рантайм-интерфейсы состояний
 using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace CrystalEditor
+namespace CrystalEngineEditor
 {
     /// <summary>
     /// Специализированный узел HFSM-состояния. Управляет визуальным отображением и хранит 

@@ -1,4 +1,4 @@
-namespace CrystalEditor
+namespace CrystalEngineEditor
 {
     public interface ISubViewSupport
     {

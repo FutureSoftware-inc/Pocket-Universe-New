@@ -1,6 +1,6 @@
 using System;
 
-namespace CrystalEditor
+namespace CrystalEngineEditor
 {
     public interface IEditorTarget
     {

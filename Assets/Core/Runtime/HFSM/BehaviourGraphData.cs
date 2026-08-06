@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace CrystalEngine.HFSM
+namespace CrystalEngine
 {
     /// <summary>
     /// Ассет на базе ScriptableObject для сохранения и хранения структуры графа поведения (HFSM).
@@ -11,7 +11,7 @@ namespace CrystalEngine.HFSM
     /// A ScriptableObject asset for saving and storing the behavior graph structure (HFSM).
     /// Combines visual metadata for the GraphView editor and executable state data for runtime.
     /// </summary>
-    [CreateAssetMenu(menuName = "Crystal/HFSM/Behaviour Graph Asset", fileName = "NewBehaviourGraph")]
+    [CreateAssetMenu(menuName = "CrystalEngine/HFSM/Behaviour Graph Asset", fileName = "NewBehaviourGraph")]
     public sealed class BehaviourGraphData : ScriptableObject
     {
         /// <summary>

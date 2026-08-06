@@ -1,6 +1,6 @@
 using System;
 
-namespace CrystalEngine.HFSM
+namespace CrystalEngine
 {
     /// <summary>
     /// Центральный управляющий класс иерархической машины состояний (HFSM).

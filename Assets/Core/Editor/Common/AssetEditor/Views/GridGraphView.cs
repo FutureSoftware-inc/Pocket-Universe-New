@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.UIElements;
 using CrystalEngine;
 
-namespace CrystalEditor
+namespace CrystalEngineEditor
 {
     public sealed class GridGraphView : GraphView
     {
@@ -38,7 +38,7 @@ namespace CrystalEditor
             }
             else
             {
-                Debug.LogWarning("[CrystalEditor] Не удалось загрузить системный стиль 'GraphView'. Используется дефолтный фон.");
+                Debug.LogWarning("[CrystalEngineEditor] Не удалось загрузить системный стиль 'GraphView'. Используется дефолтный фон.");
             }
             RegisterCallback<ContextualMenuPopulateEvent>(PopulateContextMenu);
         }

@@ -1,4 +1,4 @@
-namespace CrystalEngine.HFSM
+namespace CrystalEngine
 {
     /// <summary>
     /// Определяет интерфейс состояния в иерархической машине состояний (HFSM).

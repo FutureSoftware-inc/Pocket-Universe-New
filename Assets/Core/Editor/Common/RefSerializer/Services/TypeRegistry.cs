@@ -1,110 +1,102 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Reflection;
 using UnityEditor;
+using CrystalEngine;
 
-namespace CrystalEditor
+namespace CrystalEngineEditor
 {
-    /// <summary>
-    /// Глобальный реестр типов редактора, обеспечивающий кэширование и быстрый доступ к реализациям классов и их метаданным.
-    /// Использует оптимизированный внутренний API Unity <see cref="TypeCache"/> для ускорения индексации сборок проекта.
-    /// <br/><br/>
-    /// Global editor type registry providing caching and fast access to class implementations and their metadata.
-    /// Leverages Unity's optimized internal <see cref="TypeCache"/> API to accelerate project assembly indexing.
-    /// </summary>
     public static class TypeRegistry
     {
-        private static readonly Dictionary<Type, List<Type>> _typeCache = new();
-        private static readonly Dictionary<Type, Dictionary<Type, TypeMetadataExtension>> _metadataCache = new();
+        private static readonly Dictionary<Type, List<TypeMetadata>> _registryCache = new();
+        private static readonly Dictionary<Type, TypeMetadata> _metadataCache = new();
 
-        /// <summary>
-        /// Автоматически вызывается при компиляции или запуске редактора Unity для очистки и инвалидации кэша типов.
-        /// <br/><br/>
-        /// Automatically invoked upon compilation or Unity Editor startup to clear and invalidate the type cache.
-        /// </summary>
+        private static readonly Type[] _supportedAttributes = new[]
+        {
+            typeof(SelectorNameAttribute),
+            typeof(SelectorIconAttribute),
+            typeof(SelectorTooltipAttribute),
+            typeof(SubclassPathAttribute)
+        };
+
         [InitializeOnLoadMethod]
         public static void ClearCache()
         {
-            _typeCache.Clear();
+            _registryCache.Clear();
             _metadataCache.Clear();
         }
 
-        /// <summary>
-        /// Возвращает список всех валидных (конкретных и неабстрактных) реализаций для указанного базового типа или интерфейса.
-        /// Корректно разворачивает закрытые обобщенные типы до их определений дженериков для правильного поиска.
-        /// <br/><br/>
-        /// Returns a list of all valid (concrete and non-abstract) implementations for the specified base type or interface.
-        /// Correctly unwraps closed generic types to their generic type definitions for accurate lookup.
-        /// </summary>
-        /// <param name="baseType">Базовый тип или интерфейс для поиска наследников. Не может быть null.<br/><br/>The base type or interface to find inheritors for. Cannot be null.</param>
-        /// <returns>Список доступных типов-реализаций.<br/><br/>A list of available implementation types.</returns>
-        /// <exception cref="ArgumentNullException">Вызывается, если переданный параметр <paramref name="baseType"/> равен null.<br/><br/>Thrown when the specified <paramref name="baseType"/> parameter is null.</exception>
-        public static IReadOnlyList<Type> GetImplementations(Type baseType)
+        public static IReadOnlyList<TypeMetadata> GetImplementations(Type baseType)
         {
             if (baseType == null)
             {
                 throw new ArgumentNullException(nameof(baseType));
             }
             Type searchType = baseType.IsGenericType && !baseType.IsGenericTypeDefinition ? baseType.GetGenericTypeDefinition() : baseType;
-            if (_typeCache.TryGetValue(searchType, out List<Type> cachedTypes))
+            if (_registryCache.TryGetValue(searchType, out List<TypeMetadata> cachedList))
             {
-                return cachedTypes;
+                return cachedList;
             }
-            List<Type> derivedTypes = TypeCache.GetTypesDerivedFrom(searchType).Where(IsValidImplementation).ToList();
-            if (IsValidImplementation(searchType) && !derivedTypes.Contains(searchType))
+            List<TypeMetadata> resultList = new();
+            TypeCache.TypeCollection deviredTypes = TypeCache.GetTypesDerivedFrom(searchType);
+            for (int i = 0; i < deviredTypes.Count; i++)
             {
-                derivedTypes.Insert(0, searchType);
-            }
-            _typeCache[searchType] = derivedTypes;
-            return derivedTypes;
-        }
-
-        /// <summary>
-        /// Возвращает или лениво инициализирует расширение метаданных указанного типа <typeparamref name="T"/> относительно базового типа.
-        /// <br/><br/>
-        /// Retrieves or lazily initializes the metadata extension of the specified type <typeparamref name="T"/> relative to the base type.
-        /// </summary>
-        /// <typeparam name="T">Тип запрашиваемого расширения метаданных, наследуемый от TypeMetadataExtension.<br/><br/>The type of the requested metadata extension, derived from TypeMetadataExtension.</typeparam>
-        /// <param name="type">Исследуемый тип реализации.<br/><br/>The implementation type to inspect.</param>
-        /// <param name="baseType">Базовый тип или интерфейс поля контекста.<br/><br/>The base type or interface of the context field.</param>
-        /// <returns>Экземпляр расширения метаданных или null, если расширение не найдено.<br/><br/>The metadata extension instance, or null if not found.</returns>
-        public static T GetExtension<T>(Type type, Type baseType) where T : TypeMetadataExtension
-        {
-            if (!_metadataCache.TryGetValue(type, out var extensions))
-            {
-                extensions = new Dictionary<Type, TypeMetadataExtension>();
-
-                foreach (var factory in _extensionFactories)
+                Type type = deviredTypes[i];
+                if (IsValidImplementation(type))
                 {
-                    var extension = factory();
-                    extension.Initialize(type, baseType);
-                    extensions[extension.GetType()] = extension;
+                    TypeMetadata metadata = GetOrCreateMetadata(type);
+                    resultList.Add(metadata);
                 }
-
-                _metadataCache[type] = extensions;
             }
-
-            return extensions.TryGetValue(typeof(T), out var result) ? (T)result : null;
+            if (IsValidImplementation(searchType))
+            {
+                TypeMetadata metadata = GetOrCreateMetadata(searchType);
+                if (!resultList.Contains(metadata))
+                {
+                    resultList.Insert(0, metadata);
+                }
+            }
+            _registryCache[searchType] = resultList;
+            return resultList;
         }
 
-        private static readonly List<Func<TypeMetadataExtension>> _extensionFactories = new()
-        {
-            () => new PathMetadataExtension(),
-            () => new DisplayNameMetadataExtension(),
-            () => new TooltipMetadataExtension(),
-            () => new IconMetadataExtension()
-        };
-
-        /// <summary>
-        /// Проверяет, является ли тип валидной реализацией для инспектора (исключает интерфейсы и абстрактные классы).
-        /// <br/><br/>
-        /// Validates whether the type is a valid implementation for the Inspector (excludes interfaces and abstract classes).
-        /// </summary>
-        /// <param name="type">Проверяемый системный тип.<br/><br/>The system type to validate.</param>
-        /// <returns>True, если тип не абстрактный и не интерфейс; иначе false.<br/><br/>True if the type is neither abstract nor an interface; otherwise, false.</returns>
         private static bool IsValidImplementation(Type type)
         {
-            return !type.IsInterface && !type.IsAbstract;
+            if (type.IsInterface)
+            {
+                return false;
+            }
+            if (type.IsAbstract)
+            {
+                return false;
+            }
+            return true;
+        }
+
+        private static TypeMetadata GetOrCreateMetadata(Type type)
+        {
+            if (_metadataCache.TryGetValue(type, out TypeMetadata cachedMetadata))
+            {
+                return cachedMetadata;
+            }
+            List<Attribute> foundAttributes = new();
+            for (int i = 0; i < _supportedAttributes.Length; i++)
+            {
+                Attribute attribute = type.GetCustomAttribute(_supportedAttributes[i]);
+                if (attribute != null)
+                {
+                    foundAttributes.Add(attribute);
+                }
+            }
+            string displayName = type.GetGenericName();
+            SelectorNameAttribute nameAttribute = type.GetCustomAttribute<SelectorNameAttribute>();
+            if (nameAttribute != null)
+            {
+                displayName = nameAttribute.Name;
+            }
+            TypeMetadata metadata = new TypeMetadata(type, displayName, foundAttributes);
+            _metadataCache[type] = metadata;
+            return metadata;
         }
     }
 }

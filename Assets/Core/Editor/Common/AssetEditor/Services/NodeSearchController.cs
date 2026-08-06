@@ -2,7 +2,7 @@ using System;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 
-namespace CrystalEditor
+namespace CrystalEngineEditor
 {
     /// <summary>
     /// Контроллер управления подсистемой контекстного поиска и спавна узлов на холсте.

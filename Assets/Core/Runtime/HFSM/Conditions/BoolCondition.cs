@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace CrystalEngine.HFSM
+namespace CrystalEngine
 {
     /// <summary>
     /// Конкретный класс условия, проверяющий логические значения (bool) в Blackboard.

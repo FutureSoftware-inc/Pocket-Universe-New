@@ -4,7 +4,7 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace CrystalEditor
+namespace CrystalEngineEditor
 {
     public sealed class UniversalAssetEditor : EditorWindow
     {
@@ -24,7 +24,7 @@ namespace CrystalEditor
         private VisualElement _moduleContentContainer;
         private byte _currentSubModeId = 0;
 
-        [MenuItem("Tools/Crystal/Universal asset editor")]
+        [MenuItem("Tools/CrystalEngine/Universal asset editor")]
         public static void ShowWindow()
         {
             UniversalAssetEditor window = GetWindow<UniversalAssetEditor>();
@@ -104,7 +104,7 @@ namespace CrystalEditor
             }
             catch (Exception ex)
             {
-                Debug.LogError($"[CrystalEditor] Module initialization error: {ex.Message}");
+                Debug.LogError($"[CrystalEngineEditor] Module initialization error: {ex.Message}");
                 CleanCurrentView();
             }
         }
@@ -192,7 +192,7 @@ namespace CrystalEditor
             // 3. На всякий случай просим окно обновиться
             _splitView.MarkDirtyRepaint();
 
-            Debug.Log("[CrystalEditor] Разметка сброшена через нативные Collapse/UnCollapse.");
+            Debug.Log("[CrystalEngineEditor] Разметка сброшена через нативные Collapse/UnCollapse.");
         }
 
     }

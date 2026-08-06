@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace CrystalEngine.HFSM
+namespace CrystalEngine
 {
     /// <summary>
     /// Конкретная реализация условия, выполняющая математическое сравнение числовых значений в Blackboard.
