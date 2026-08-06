@@ -6,5 +6,6 @@ namespace CrystalEngine.DI
     {
         IBindingConfigurator AsSingle();
         IBindingConfigurator AsTransient();
+        void FromInstance(object instance);
     }
 }

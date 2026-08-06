@@ -22,5 +22,11 @@ namespace CrystalEngine.DI
             _binding.SetLifecycle(Lifecycle.Transient);
             return this;
         }
+
+        public void FromInstance(object instance)
+        {
+            _binding.SetPreCreatedInstance(instance);
+            _binding.SetLifecycle(Lifecycle.Singleton);
+        }
     }
 }

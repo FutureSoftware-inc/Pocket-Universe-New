@@ -9,6 +9,7 @@ namespace CrystalEngine.DI
         public Type ConcreteType { get; }
         public Lifecycle Lifecycle { get; private set; }
         public object Instance { get; private set; }
+        public bool IsPreCreated { get; private set; }
 
         public Binding(Type contractType, Type concreteType)
         {
@@ -25,6 +26,12 @@ namespace CrystalEngine.DI
         public void SetInstance(object instance)
         {
             Instance = instance;
+        }
+
+        public void SetPreCreatedInstance(object instance)
+        {
+            Instance = instance;
+            IsPreCreated = true;
         }
     }
 }

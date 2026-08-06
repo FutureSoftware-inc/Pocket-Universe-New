@@ -19,6 +19,11 @@ namespace CrystalEngine.DI
             return new Binder<TContract>(this);
         }
 
+        public void Inject(object target)
+        {
+            _instantiator.InjectObject(target);
+        }
+
         public IBindingConfigurator BindAsSelf<TConcrete>() where TConcrete : class
         {
             return RegisterBindings(typeof(TConcrete), typeof(TConcrete));
@@ -41,6 +46,10 @@ namespace CrystalEngine.DI
             if (!_bindings.TryGetValue(contractType, out Binding binding))
             {
                 throw new Exception($"[DI Error] Зависимость для типа {contractType.Name} не зарегистрирована!");
+            }
+            if (binding.IsPreCreated)
+            {
+                return binding.Instance;
             }
             if (binding.Lifecycle == Lifecycle.Singleton && binding.Instance != null)
             {

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
 
@@ -22,17 +23,67 @@ namespace CrystalEngine.DI
             }
             ConstructorInfo constructor = constructors[0];
             ParameterInfo[] constructorParameters = constructor.GetParameters();
+            object instance = null;
             if (constructorParameters.Length == 0)
             {
-                return Activator.CreateInstance(concreteType);
+                instance = Activator.CreateInstance(concreteType);
             }
-            object[] arguments = new object[constructorParameters.Length];
-            for (int i = 0; i < constructorParameters.Length; i++)
+            else
             {
-                Type parameterType = constructorParameters[i].ParameterType;
-                arguments[i] = _container.Resolve(parameterType);
+                object[] arguments = new object[constructorParameters.Length];
+                for (int i = 0; i < constructorParameters.Length; i++)
+                {
+                    Type parameterType = constructorParameters[i].ParameterType;
+                    arguments[i] = _container.Resolve(parameterType);
+                }
+                instance = constructor.Invoke(arguments);
             }
-            return constructor.Invoke(arguments);
+            InjectObject(instance);
+            return instance;
+        }
+
+        internal void InjectObject(object target)
+        {
+            if (target == null)
+            {
+                return;
+            }
+            InjectFields(target);
+            InjectMethods(target);
+        }
+
+        private void InjectFields(object target)
+        {
+            Type type = target.GetType();
+            FieldInfo[] fields = type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+            foreach (FieldInfo field in fields)
+            {
+                if (field.IsDefined(typeof(InjectAttribute), true))
+                {
+                    object dependency = _container.Resolve(field.FieldType);
+                    field.SetValue(target, dependency);
+                }
+            }
+        }
+
+        private void InjectMethods(object target)
+        {
+            Type type = target.GetType();
+            MethodInfo[] methods = type.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+            foreach (MethodInfo method in methods)
+            {
+                InjectAttribute attribute = method.GetCustomAttribute<InjectAttribute>(true);
+                if (attribute != null)
+                {
+                    ParameterInfo[] methodParameters = method.GetParameters();
+                    object[] arguments = new object[methodParameters.Length];
+                    for (int i = 0; i < methodParameters.Length; i++)
+                    {
+                        arguments[i] = _container.Resolve(methodParameters[i].ParameterType);
+                    }
+                    method.Invoke(target, arguments);
+                }
+            }
         }
     }
 }

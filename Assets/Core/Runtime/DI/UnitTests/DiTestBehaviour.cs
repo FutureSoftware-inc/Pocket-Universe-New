@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace CrystalEngine.DI
+namespace CrystalEngine.DI.Tests
 {
     // --- Интерфейсы и классы (адаптированные под Unity) ---
     public interface ILogger { void Log(string message); }
