@@ -1,9 +1,9 @@
-using System;
 using System.Collections.Generic;
 using UnityEngine;
 
 namespace CrystalEngine.DI
 {
+    [DisallowMultipleComponent]
     [DefaultExecutionOrder(-20000)]
     public sealed class ProjectContext : Context
     {

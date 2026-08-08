@@ -1,5 +1,3 @@
-using UnityEngine;
-
 namespace CrystalEngine.DI
 {
     public class Binder<TContract>

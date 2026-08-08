@@ -1,9 +1,9 @@
-using System;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
 namespace CrystalEngine.DI
 {
+    [DisallowMultipleComponent]
     [DefaultExecutionOrder(-10000)]
     public sealed class SceneContext : Context
     {

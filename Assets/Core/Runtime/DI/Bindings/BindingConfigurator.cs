@@ -1,5 +1,3 @@
-using UnityEngine;
-
 namespace CrystalEngine.DI
 {
     internal class BindingConfigurator : IBindingConfigurator
