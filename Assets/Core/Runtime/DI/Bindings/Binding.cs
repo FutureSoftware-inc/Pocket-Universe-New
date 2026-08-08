@@ -3,35 +3,42 @@ using UnityEngine;
 
 namespace CrystalEngine.DI
 {
-    public sealed class Binding
+    internal sealed class Binding
     {
-        public Type ContractType { get; }
-        public Type ConcreteType { get; }
-        public Lifecycle Lifecycle { get; private set; }
-        public object Instance { get; private set; }
-        public bool IsPreCreated { get; private set; }
+        internal Type ContractType { get; }
+        internal Type ConcreteType { get; }
+        internal Lifecycle Lifecycle { get; private set; }
+        internal object Instance { get; private set; }
+        internal bool IsPreCreated { get; private set; }
+        internal Func<Type, bool> Condition { get; private set; }
 
-        public Binding(Type contractType, Type concreteType)
+        internal Binding(Type contractType, Type concreteType)
         {
             ContractType = contractType;
             ConcreteType = concreteType;
             Lifecycle = Lifecycle.Transient;
+            Condition = null;
         }
 
-        public void SetLifecycle(Lifecycle lifecycle)
+        internal void SetLifecycle(Lifecycle lifecycle)
         {
             Lifecycle = lifecycle;
         }
 
-        public void SetInstance(object instance)
+        internal void SetInstance(object instance)
         {
             Instance = instance;
         }
 
-        public void SetPreCreatedInstance(object instance)
+        internal void SetPreCreatedInstance(object instance)
         {
             Instance = instance;
             IsPreCreated = true;
+        }
+
+        internal void SetCondition(Func<Type, bool> condition)
+        {
+            Condition = condition;
         }
     }
 }

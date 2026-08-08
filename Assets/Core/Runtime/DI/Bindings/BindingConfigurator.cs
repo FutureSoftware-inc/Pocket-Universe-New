@@ -2,11 +2,11 @@ using UnityEngine;
 
 namespace CrystalEngine.DI
 {
-    public class BindingConfigurator : IBindingConfigurator
+    internal class BindingConfigurator : IBindingConfigurator
     {
         private readonly Binding _binding;
 
-        public BindingConfigurator(Binding binding)
+        internal BindingConfigurator(Binding binding)
         {
             _binding = binding;
         }
@@ -27,6 +27,12 @@ namespace CrystalEngine.DI
         {
             _binding.SetPreCreatedInstance(instance);
             _binding.SetLifecycle(Lifecycle.Singleton);
+        }
+
+        public IBindingConfigurator WhenInjectedInto<TTarget>() where TTarget : class
+        {
+            _binding.SetCondition(targetType => targetType == typeof(TTarget));
+            return this;
         }
     }
 }

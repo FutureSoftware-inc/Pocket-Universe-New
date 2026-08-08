@@ -5,46 +5,17 @@ using UnityEngine.SceneManagement;
 namespace CrystalEngine.DI
 {
     [DefaultExecutionOrder(-10000)]
-    public sealed class SceneContext : MonoBehaviour
+    public sealed class SceneContext : Context
     {
-        [SerializeField] private MonoInstaller[] _monoInstallers;
-        [SerializeField] private AssetInstaller[] _assetInstallers;
-
-        private DIContainer _container;
-
         private void Awake()
         {
-            _container = new DIContainer();
-            _container.BindAsSelf<DIContainer>().FromInstance(_container);
-            if (_monoInstallers == null || _monoInstallers.Length == 0)
+            DIContainer parentContainer = null;
+            if (ProjectContext.Instance != null)
             {
-                _monoInstallers = FindObjectsByType<MonoInstaller>(FindObjectsInactive.Include);
+                parentContainer = ProjectContext.Instance.Container;
             }
-            if (_assetInstallers == null || _assetInstallers.Length == 0)
-            {
-                _assetInstallers = new AssetInstaller[0];
-            }
-            InstallBindings();
+            InitializeContext(parentContainer);
             InjectSceneObjects();
-        }
-
-        private void InstallBindings()
-        {
-            foreach (MonoInstaller monoInstaller in _monoInstallers)
-            {
-                if (monoInstaller != null)
-                {
-                    monoInstaller.InstallBindings(_container);
-                }
-            }
-
-            foreach (AssetInstaller assetInstaller in _assetInstallers)
-            {
-                if (assetInstaller != null)
-                {
-                    assetInstaller.InstallBindings(_container);
-                }
-            }
         }
 
         private void InjectSceneObjects()
@@ -60,7 +31,7 @@ namespace CrystalEngine.DI
                     {
                         continue;
                     }
-                    _container.Inject(monoBehaviour);
+                    Container.Inject(monoBehaviour);
                 }
             }
             Debug.Log("[SceneContext] Базовые зависимости сцены успешно зарегистрированы.");
