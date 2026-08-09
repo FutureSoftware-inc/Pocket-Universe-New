@@ -94,7 +94,7 @@ namespace CrystalEngine.DI
             return _instantiator.InstantiatePrefab(prefab, position, parent);
         }
 
-        public TContract InstantiatePrefabForComponent<TContract>(GameObject prefab, Vector3 position, Quaternion rotation, Transform parent = null) where TContract : MonoBehaviour
+        public TContract InstantiatePrefabForComponent<TContract>(GameObject prefab, Vector3 position, Quaternion rotation, Transform parent = null) where TContract : Component
         {
             GameObject spawnedObject = InstantiatePrefab(prefab, position, rotation, parent);
             TContract component = spawnedObject.GetComponent<TContract>();
@@ -105,12 +105,12 @@ namespace CrystalEngine.DI
             return component;
         }
 
-        public TContract InstantiatePrefabForComponent<TContract>(GameObject prefab, Transform parent = null) where TContract : MonoBehaviour
+        public TContract InstantiatePrefabForComponent<TContract>(GameObject prefab, Transform parent = null) where TContract : Component
         {
             return InstantiatePrefabForComponent<TContract>(prefab, prefab.transform.position, prefab.transform.rotation, parent);
         }
 
-        public TContract InstantiatePrefabForComponent<TContract>(GameObject prefab, Vector3 position, Transform parent = null) where TContract : MonoBehaviour
+        public TContract InstantiatePrefabForComponent<TContract>(GameObject prefab, Vector3 position, Transform parent = null) where TContract : Component
         {
             return InstantiatePrefabForComponent<TContract>(prefab, position, prefab.transform.rotation, parent);
         }
