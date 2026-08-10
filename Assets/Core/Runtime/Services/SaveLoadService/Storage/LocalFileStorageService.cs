@@ -14,11 +14,11 @@ using UnityEngine;
 
 namespace CrystalEngine.Services
 {
-    public sealed class LocalFileStorageService : IDataStorageService
+    internal sealed class LocalFileStorageService : IDataStorageService
     {
         private readonly string _baseStoragePath;
 
-        public LocalFileStorageService()
+        internal LocalFileStorageService()
         {
             _baseStoragePath = Application.persistentDataPath;
         }

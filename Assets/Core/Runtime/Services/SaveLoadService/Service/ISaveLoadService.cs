@@ -15,5 +15,7 @@ namespace CrystalEngine.Services
 
         ASYNC_TASK SaveContextAsync(SaveContext context, string slotName);
         ASYNC_TASK LoadContextAsync(SaveContext context, string slotName);
+        void SaveEntity(ISaveableDataProvider provider);
+        void LoadEntity(ISaveableDataProvider provider);
     }
 }

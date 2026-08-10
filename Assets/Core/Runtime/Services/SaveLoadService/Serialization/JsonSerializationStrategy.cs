@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace CrystalEngine.Services
 {
-    public sealed class JsonSerializationStrategy : ISerializationStrategy
+    internal sealed class JsonSerializationStrategy : ISerializationStrategy
     {
         public byte[] Serialize(Dictionary<string, Dictionary<string, object>> stateGraph)
         {

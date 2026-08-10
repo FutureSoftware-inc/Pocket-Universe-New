@@ -4,12 +4,12 @@ using System.Reflection;
 
 namespace CrystalEngine.Services
 {
-    public sealed class SaveLoadMetaDataCache
+    internal sealed class SaveLoadMetaDataCache
     {
         private readonly Dictionary<Type, IReadOnlyList<FieldInfo>> _cachedFields = new();
         private readonly Dictionary<Type, IReadOnlyList<PropertyInfo>> _cachedProperties = new();
 
-        public IReadOnlyList<FieldInfo> GetSerializableFields(Type type)
+        internal IReadOnlyList<FieldInfo> GetSerializableFields(Type type)
         {
             if (_cachedFields.TryGetValue(type, out var fields))
             {
@@ -21,7 +21,7 @@ namespace CrystalEngine.Services
             return result;
         }
 
-        public IReadOnlyList<PropertyInfo> GetSerializableProperties(Type type)
+        internal IReadOnlyList<PropertyInfo> GetSerializableProperties(Type type)
         {
             if (_cachedProperties.TryGetValue(type, out var properties))
             {

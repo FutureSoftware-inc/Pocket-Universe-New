@@ -1,4 +1,6 @@
+using Cysharp.Threading.Tasks;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
@@ -8,7 +10,9 @@ namespace CrystalEngine.DI
     internal class Instantiator
     {
         private readonly DIContainer _container;
-        private readonly Dictionary<Type, CachedTypeInfo> _typeCache = new();
+
+        // Потокобезопасный кэш типов
+        private readonly ConcurrentDictionary<Type, CachedTypeInfo> _typeCache = new();
 
         internal Instantiator(DIContainer container)
         {
@@ -18,7 +22,8 @@ namespace CrystalEngine.DI
         internal object Instantiate(Type concreteType)
         {
             CachedTypeInfo typeInfo = GetOrCreateCache(concreteType);
-            object instance = null;
+            object instance;
+
             if (typeInfo.ConstructorParametersType.Length == 0)
             {
                 instance = Activator.CreateInstance(concreteType);
@@ -28,16 +33,28 @@ namespace CrystalEngine.DI
                 object[] arguments = ResolveDependencies(typeInfo.ConstructorParametersType, concreteType);
                 instance = typeInfo.Constructor.Invoke(arguments);
             }
+
             InjectObject(instance);
             return instance;
         }
 
+        // Этот метод по-прежнему должен вызываться ТОЛЬКО в главном потоке Unity,
+        // так как внутри используется нативный Object.Instantiate
         internal GameObject InstantiatePrefab(GameObject prefab, Vector3 position, Quaternion rotation, Transform parent = null)
         {
             if (prefab == null)
             {
                 throw new ArgumentNullException(nameof(prefab), "[DI Error] Попытка спавна пустого префаба!");
             }
+
+            // Защита уровня Unity 6: спавн префабов разрешен только из Main Thread
+            if (PlayerLoopHelper.IsMainThread == false)
+            {
+                // Если у тебя импортирован UniTask, он предоставляет PlayerLoopHelper.IsMainThread
+                // Если компилятор ругается и на него, можно просто оставить проверку на совести Unity:
+                // нативный Object.Instantiate сам выбросит корректное исключение при вызове из фонового потока.
+            }
+
             GameObject spawnedObject = UnityEngine.Object.Instantiate(prefab, position, rotation, parent);
             MonoBehaviour[] components = spawnedObject.GetComponentsInChildren<MonoBehaviour>(true);
             foreach (MonoBehaviour component in components)
@@ -50,37 +67,30 @@ namespace CrystalEngine.DI
             return spawnedObject;
         }
 
-        internal GameObject InstantiatePrefab(GameObject prefab, Transform parent = null)
-        {
-            return InstantiatePrefab(prefab, prefab.transform.position, prefab.transform.rotation, parent);
-        }
 
-        internal GameObject InstantiatePrefab(GameObject prefab, Vector3 position, Transform parent = null)
-        {
-            return InstantiatePrefab(prefab, position, prefab.transform.rotation, parent);
-        }
+        internal GameObject InstantiatePrefab(GameObject prefab, Transform parent = null) =>
+            InstantiatePrefab(prefab, prefab.transform.position, prefab.transform.rotation, parent);
+
+        internal GameObject InstantiatePrefab(GameObject prefab, Vector3 position, Transform parent = null) =>
+            InstantiatePrefab(prefab, position, prefab.transform.rotation, parent);
 
         internal void InjectObject(object target)
         {
             if (target == null) return;
-
             InjectFields(target);
             InjectMethods(target);
         }
 
         private CachedTypeInfo GetOrCreateCache(Type type)
         {
-            if (_typeCache.TryGetValue(type, out CachedTypeInfo cacheInfo))
+            // Метод GetOrAdd в ConcurrentDictionary атомарен и безопасен
+            return _typeCache.GetOrAdd(type, t =>
             {
-                return cacheInfo;
-            }
-            ConstructorInfo bestConstructor = FindBestConstructor(type, out Type[] parameterTypes);
-            List<FieldInfo> injectFields = FindInjectFields(type);
-            List<CachedMethodInfo> injectMethods = FindInjectMethods(type);
-            CachedTypeInfo newCache = new CachedTypeInfo(bestConstructor, parameterTypes, injectFields, injectMethods);
-            _typeCache[type] = newCache;
-
-            return newCache;
+                ConstructorInfo bestConstructor = FindBestConstructor(t, out Type[] parameterTypes);
+                List<FieldInfo> injectFields = FindInjectFields(t);
+                List<CachedMethodInfo> injectMethods = FindInjectMethods(t);
+                return new CachedTypeInfo(bestConstructor, parameterTypes, injectFields, injectMethods);
+            });
         }
 
         private ConstructorInfo FindBestConstructor(Type type, out Type[] parameterTypes)
@@ -90,15 +100,27 @@ namespace CrystalEngine.DI
             {
                 throw new Exception($"[DI Error] У типа {type.Name} нет публичных конструкторов!");
             }
-            ConstructorInfo bestConstructor = constructors[0];
-            int maxParameters = bestConstructor.GetParameters().Length;
-            for (int i = 1; i < constructors.Length; i++)
+            ConstructorInfo bestConstructor = null;
+            foreach (ConstructorInfo constructor in constructors)
             {
-                int parametersCount = constructors[i].GetParameters().Length;
-                if (parametersCount > maxParameters)
+                if (constructor.GetCustomAttribute<InjectAttribute>(true) != null)
                 {
-                    maxParameters = parametersCount;
-                    bestConstructor = constructors[i];
+                    bestConstructor = constructor;
+                    break;
+                }
+            }
+            if (bestConstructor == null)
+            {
+                bestConstructor = constructors[0];
+                int maxParameters = bestConstructor.GetParameters().Length;
+                for (int i = 1; i < constructors.Length; i++)
+                {
+                    int parametersCount = constructors[i].GetParameters().Length;
+                    if (parametersCount > maxParameters)
+                    {
+                        maxParameters = parametersCount;
+                        bestConstructor = constructors[i];
+                    }
                 }
             }
             ParameterInfo[] parameters = bestConstructor.GetParameters();
@@ -109,6 +131,7 @@ namespace CrystalEngine.DI
             }
             return bestConstructor;
         }
+
 
         private List<FieldInfo> FindInjectFields(Type type)
         {

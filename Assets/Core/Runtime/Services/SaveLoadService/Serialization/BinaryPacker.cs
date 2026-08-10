@@ -4,9 +4,9 @@ using System.Text;
 
 namespace CrystalEngine.Services
 {
-    public static class BinaryPacker
+    internal static class BinaryPacker
     {
-        public static byte[] Pack(Dictionary<string, Dictionary<string, object>> graph)
+        internal static byte[] Pack(Dictionary<string, Dictionary<string, object>> graph)
         {
             using MemoryStream stream = new();
             using (BinaryWriter writer = new(stream, Encoding.UTF8))
@@ -26,7 +26,7 @@ namespace CrystalEngine.Services
             return stream.ToArray();
         }
 
-        public static Dictionary<string, Dictionary<string, object>> Unpack(byte[] bytes)
+        internal static Dictionary<string, Dictionary<string, object>> Unpack(byte[] bytes)
         {
             Dictionary<string, Dictionary<string, object>> graph = new();
             if (bytes == null || bytes.Length == 0) return graph;

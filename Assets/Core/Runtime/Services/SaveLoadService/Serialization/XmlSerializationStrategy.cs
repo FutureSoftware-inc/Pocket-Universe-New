@@ -5,12 +5,12 @@ using System.Xml;
 
 namespace CrystalEngine.Services
 {
-    public sealed class XmlSerializationStrategy : ISerializationStrategy
+    internal sealed class XmlSerializationStrategy : ISerializationStrategy
     {
         private readonly XmlWriterSettings _writerSettings;
         private readonly XmlReaderSettings _readerSettings;
 
-        public XmlSerializationStrategy()
+        internal XmlSerializationStrategy()
         {
             _writerSettings = new XmlWriterSettings
             {
