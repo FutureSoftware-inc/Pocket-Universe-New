@@ -2,8 +2,9 @@ namespace CrystalEngine.Services
 {
     public enum SerializationFormat : byte
     {
-        Json = 0,
-        Xml = 1,
-        Binary = 2
+        None = 0,
+        Json = 1,
+        Xml = 2,
+        Binary = 3
     }
 }

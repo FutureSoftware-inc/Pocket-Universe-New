@@ -27,70 +27,66 @@ namespace CrystalEngine.Services
 
         public byte[] Serialize(Dictionary<string, Dictionary<string, object>> stateGraph)
         {
-            using (MemoryStream memoryStream = new())
+            using MemoryStream memoryStream = new();
+            using (XmlWriter writer = XmlWriter.Create(memoryStream, _writerSettings))
             {
-                using (XmlWriter writer = XmlWriter.Create(memoryStream, _writerSettings))
+                writer.WriteStartDocument();
+                writer.WriteStartElement("CrystalSaveData");
+                foreach (var providerNode in stateGraph)
                 {
-                    writer.WriteStartDocument();
-                    writer.WriteStartElement("CrystalSaveData");
-                    foreach (var providerNode in stateGraph)
+                    writer.WriteStartElement("DataProvider");
+                    writer.WriteAttributeString("Key", providerNode.Key);
+                    foreach (var fieldNode in providerNode.Value)
                     {
-                        writer.WriteStartElement("DataProvider");
-                        writer.WriteAttributeString("Key", providerNode.Key);
-                        foreach (var fieldNode in providerNode.Value)
-                        {
-                            writer.WriteStartElement("DataField");
-                            writer.WriteAttributeString("Name", fieldNode.Key);
-                            string typeName = fieldNode.Value?.GetType().AssemblyQualifiedName ?? "null";
-                            writer.WriteAttributeString("Type", typeName);
-                            writer.WriteString(fieldNode.Value?.ToString() ?? string.Empty);
-                            writer.WriteEndElement();
-                        }
+                        writer.WriteStartElement("DataField");
+                        writer.WriteAttributeString("Name", fieldNode.Key);
+                        string typeName = fieldNode.Value?.GetType().AssemblyQualifiedName ?? "null";
+                        writer.WriteAttributeString("Type", typeName);
+                        writer.WriteString(fieldNode.Value?.ToString() ?? string.Empty);
                         writer.WriteEndElement();
                     }
                     writer.WriteEndElement();
-                    writer.WriteEndDocument();
                 }
-                return memoryStream.ToArray();
+                writer.WriteEndElement();
+                writer.WriteEndDocument();
             }
+            return memoryStream.ToArray();
         }
 
         public Dictionary<string, Dictionary<string, object>> Deserialize(byte[] bytes)
         {
             Dictionary<string, Dictionary<string, object>> rootGraph = new();
             if (bytes == null || bytes.Length == 0) return rootGraph;
-            using (MemoryStream memoryStream = new MemoryStream(bytes))
+            using (MemoryStream memoryStream = new(bytes))
             {
-                using (XmlReader reader = XmlReader.Create(memoryStream, _readerSettings))
+                using XmlReader reader = XmlReader.Create(memoryStream, _readerSettings);
+                string currentProviderKey = null;
+                Dictionary<string, object> currentProviderData = null;
+                while (reader.Read())
                 {
-                    string currentProviderKey = null;
-                    Dictionary<string, object> currentProviderData = null;
-                    while (reader.Read())
+                    if (reader.NodeType != XmlNodeType.Element)
                     {
-                        if (reader.NodeType != XmlNodeType.Element)
+                        continue;
+                    }
+                    if (reader.Name == "DataProvider")
+                    {
+                        currentProviderKey = reader.GetAttribute("Key");
+                        currentProviderData = new Dictionary<string, object>();
+                        rootGraph[currentProviderKey] = currentProviderData;
+                    }
+                    else if (reader.Name == "DataField" && currentProviderData != null)
+                    {
+                        string fieldName = reader.GetAttribute("Name");
+                        string typeName = reader.GetAttribute("Type");
+                        reader.Read();
+                        string rawValue = reader.Value;
+                        if (typeName != "null" && !string.IsNullOrEmpty(fieldName))
                         {
-                            continue;
-                        }
-                        if (reader.Name == "DataProvider")
-                        {
-                            currentProviderKey = reader.GetAttribute("Key");
-                            currentProviderData = new Dictionary<string, object>();
-                            rootGraph[currentProviderKey] = currentProviderData;
-                        }
-                        else if (reader.Name == "DataField" && currentProviderData != null)
-                        {
-                            string fieldName = reader.GetAttribute("Name");
-                            string typeName = reader.GetAttribute("Type");
-                            reader.Read();
-                            string rawValue = reader.Value;
-                            if (typeName != "null" && !string.IsNullOrEmpty(fieldName))
+                            Type targetType = Type.GetType(typeName);
+                            if (targetType != null)
                             {
-                                Type targetType = Type.GetType(typeName);
-                                if (targetType != null)
-                                {
-                                    object convertedValue = Convert.ChangeType(rawValue, targetType);
-                                    currentProviderData[fieldName] = convertedValue;
-                                }
+                                object convertedValue = Convert.ChangeType(rawValue, targetType);
+                                currentProviderData[fieldName] = convertedValue;
                             }
                         }
                     }

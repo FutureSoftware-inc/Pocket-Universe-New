@@ -10,8 +10,6 @@ namespace CrystalEngine.DI
     internal class Instantiator
     {
         private readonly DIContainer _container;
-
-        // Потокобезопасный кэш типов
         private readonly ConcurrentDictionary<Type, CachedTypeInfo> _typeCache = new();
 
         internal Instantiator(DIContainer container)
@@ -23,7 +21,6 @@ namespace CrystalEngine.DI
         {
             CachedTypeInfo typeInfo = GetOrCreateCache(concreteType);
             object instance;
-
             if (typeInfo.ConstructorParametersType.Length == 0)
             {
                 instance = Activator.CreateInstance(concreteType);
@@ -33,20 +30,16 @@ namespace CrystalEngine.DI
                 object[] arguments = ResolveDependencies(typeInfo.ConstructorParametersType, concreteType);
                 instance = typeInfo.Constructor.Invoke(arguments);
             }
-
             InjectObject(instance);
             return instance;
         }
 
-        // Этот метод по-прежнему должен вызываться ТОЛЬКО в главном потоке Unity,
-        // так как внутри используется нативный Object.Instantiate
         internal GameObject InstantiatePrefab(GameObject prefab, Vector3 position, Quaternion rotation, Transform parent = null)
         {
             if (prefab == null)
             {
                 throw new ArgumentNullException(nameof(prefab), "[DI Error] Попытка спавна пустого префаба!");
             }
-
             // Защита уровня Unity 6: спавн префабов разрешен только из Main Thread
             if (PlayerLoopHelper.IsMainThread == false)
             {
@@ -54,7 +47,6 @@ namespace CrystalEngine.DI
                 // Если компилятор ругается и на него, можно просто оставить проверку на совести Unity:
                 // нативный Object.Instantiate сам выбросит корректное исключение при вызове из фонового потока.
             }
-
             GameObject spawnedObject = UnityEngine.Object.Instantiate(prefab, position, rotation, parent);
             MonoBehaviour[] components = spawnedObject.GetComponentsInChildren<MonoBehaviour>(true);
             foreach (MonoBehaviour component in components)
@@ -74,6 +66,17 @@ namespace CrystalEngine.DI
         internal GameObject InstantiatePrefab(GameObject prefab, Vector3 position, Transform parent = null) =>
             InstantiatePrefab(prefab, position, prefab.transform.rotation, parent);
 
+        internal object InstantiatePrefabComponent(GameObject prefab, Type componentType)
+        {
+            GameObject spawnedObject = InstantiatePrefab(prefab);
+            object component = spawnedObject.GetComponentInChildren(componentType, true);
+            if (component == null)
+            {
+                throw new Exception($"[DI Error] На префабе {prefab.name} не найден компонент типа {componentType.Name}!");
+            }
+            return component;
+        }
+
         internal void InjectObject(object target)
         {
             if (target == null) return;
@@ -83,7 +86,6 @@ namespace CrystalEngine.DI
 
         private CachedTypeInfo GetOrCreateCache(Type type)
         {
-            // Метод GetOrAdd в ConcurrentDictionary атомарен и безопасен
             return _typeCache.GetOrAdd(type, t =>
             {
                 ConstructorInfo bestConstructor = FindBestConstructor(t, out Type[] parameterTypes);
@@ -136,13 +138,18 @@ namespace CrystalEngine.DI
         private List<FieldInfo> FindInjectFields(Type type)
         {
             List<FieldInfo> injectFields = new List<FieldInfo>();
-            FieldInfo[] fields = type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
-            foreach (FieldInfo field in fields)
+            Type currentType = type;
+            while (currentType != null && currentType != typeof(object))
             {
-                if (field.GetCustomAttribute<InjectAttribute>(true) != null)
+                FieldInfo[] fields = currentType.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly);
+                foreach (FieldInfo field in fields)
                 {
-                    injectFields.Add(field);
+                    if (field.GetCustomAttribute<InjectAttribute>(true) != null)
+                    {
+                        injectFields.Add(field);
+                    }
                 }
+                currentType = currentType.BaseType;
             }
             return injectFields;
         }

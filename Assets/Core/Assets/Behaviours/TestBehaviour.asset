@@ -20,15 +20,26 @@ MonoBehaviour:
     _position: {x: 0, y: 0}
     _nodeName: 
   _runtimeStates:
-  - rid: 7003737936792125510
+  - rid: 266435917588463616
   - rid: -2
   references:
     version: 2
     RefIds:
     - rid: -2
       type: {class: , ns: , asm: }
-    - rid: 7003737936792125510
-      type: {class: 'State`1[[CrystalEngine.IBlackboardProvider, Assembly-CSharp]]', ns: CrystalEngine.HFSM, asm: Assembly-CSharp}
+    - rid: 266435917588463616
+      type: {class: 'SyncState`1[[CrystalEngine.IBlackboardProvider, Assembly-CSharp]]', ns: CrystalEngine, asm: Assembly-CSharp}
       data:
         _stateName: 
-        _transitions: []
+        _transitions:
+        - rid: 266435917588463617
+        _entryCommands:
+        - rid: -2
+        _exitCommands: []
+        _updateCommands: []
+        _fixedUpdateCommands: []
+        _lateUpdateCommands: []
+    - rid: 266435917588463617
+      type: {class: 'Transition`1[[CrystalEngine.IBlackboardProvider, Assembly-CSharp]]', ns: CrystalEngine, asm: Assembly-CSharp}
+      data:
+        _targetStateName: 

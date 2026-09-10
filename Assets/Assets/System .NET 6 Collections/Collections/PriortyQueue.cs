@@ -117,7 +117,6 @@ namespace System.Collections.Generic
         public PriorityQueue(int initialCapacity, IComparer<TPriority> comparer)
         {
             initialCapacity.ThrowIfNegative(nameof(initialCapacity));
-
             _nodes = new (TElement, TPriority)[initialCapacity];
             _comparer = InitializeComparer(comparer);
         }
@@ -159,10 +158,8 @@ namespace System.Collections.Generic
         public PriorityQueue(IEnumerable<(TElement Element, TPriority Priority)> items, IComparer<TPriority> comparer)
         {
             items.ThrowIfNull(nameof(items));
-
             _nodes = EnumerableHelpers.ToArray(items, out _size);
             _comparer = InitializeComparer(comparer);
-
             if (_size > 1)
             {
                 Heapify();
@@ -198,17 +195,13 @@ namespace System.Collections.Generic
             // Virtually add the node at the end of the underlying array.
             // Note that the node being enqueued does not need to be physically placed
             // there at this point, as such an assignment would be redundant.
-
             int currentSize = _size;
             _version++;
-
             if (_nodes.Length == currentSize)
             {
                 Grow(currentSize + 1);
             }
-
             _size = currentSize + 1;
-
             if (_comparer == null)
             {
                 MoveUpDefaultComparer((element, priority), currentSize);
@@ -230,7 +223,6 @@ namespace System.Collections.Generic
             {
                 throw new InvalidOperationException(ErrorMessage.InvalidOperation.EmptyQueue);
             }
-
             return _nodes[0].Element;
         }
 
@@ -245,7 +237,6 @@ namespace System.Collections.Generic
             {
                 throw new InvalidOperationException(ErrorMessage.InvalidOperation.EmptyQueue);
             }
-
             TElement element = _nodes[0].Element;
             RemoveRootNode();
             return element;
@@ -269,9 +260,7 @@ namespace System.Collections.Generic
             {
                 throw new InvalidOperationException(ErrorMessage.InvalidOperation.EmptyQueue);
             }
-
             (TElement Element, TPriority Priority) = _nodes[0];
-
             if (_comparer == null)
             {
                 if (Comparer<TPriority>.Default.Compare(priority, Priority) > 0)
@@ -294,7 +283,6 @@ namespace System.Collections.Generic
                     _nodes[0] = (element, priority);
                 }
             }
-
             _version++;
             return Element;
         }
@@ -318,7 +306,6 @@ namespace System.Collections.Generic
                 RemoveRootNode();
                 return true;
             }
-
             element = default;
             priority = default;
             return false;
@@ -343,7 +330,6 @@ namespace System.Collections.Generic
                 (element, priority) = _nodes[0];
                 return true;
             }
-
             element = default;
             priority = default;
             return false;
@@ -366,7 +352,6 @@ namespace System.Collections.Generic
             if (_size != 0)
             {
                 (TElement Element, TPriority Priority) root = _nodes[0];
-
                 if (_comparer == null)
                 {
                     if (Comparer<TPriority>.Default.Compare(priority, root.Priority) > 0)
@@ -386,7 +371,6 @@ namespace System.Collections.Generic
                     }
                 }
             }
-
             return element;
         }
 
@@ -400,18 +384,15 @@ namespace System.Collections.Generic
         public void EnqueueRange(IEnumerable<(TElement Element, TPriority Priority)> items)
         {
             items.ThrowIfNull(nameof(items));
-
             int count = 0;
             var collection = items as ICollection<(TElement Element, TPriority Priority)>;
             if (collection is not null && (count = collection.Count) > _nodes.Length - _size)
             {
                 Grow(checked(_size + count));
             }
-
             if (_size == 0)
             {
                 // build using Heapify() if the queue is empty.
-
                 if (collection is not null)
                 {
                     collection.CopyTo(_nodes, 0);
@@ -431,12 +412,9 @@ namespace System.Collections.Generic
 
                         nodes[i++] = (element, priority);
                     }
-
                     _size = i;
                 }
-
                 _version++;
-
                 if (_size > 1)
                 {
                     Heapify();
@@ -463,18 +441,15 @@ namespace System.Collections.Generic
         public void EnqueueRange(IEnumerable<TElement> elements, TPriority priority)
         {
             elements.ThrowIfNull(nameof(elements));
-
             int count;
             if (elements is ICollection<TElement> collection &&
                 (count = collection.Count) > _nodes.Length - _size)
             {
                 Grow(checked(_size + count));
             }
-
             if (_size == 0)
             {
                 // build using Heapify() if the queue is empty.
-
                 int i = 0;
                 (TElement, TPriority)[] nodes = _nodes;
                 foreach (TElement element in elements)
@@ -484,13 +459,10 @@ namespace System.Collections.Generic
                         Grow(i + 1);
                         nodes = _nodes;
                     }
-
                     nodes[i++] = (element, priority);
                 }
-
                 _size = i;
                 _version++;
-
                 if (i > 1)
                 {
                     Heapify();
@@ -531,13 +503,11 @@ namespace System.Collections.Generic
         public int EnsureCapacity(int capacity)
         {
             capacity.ThrowIfNegative(nameof(capacity));
-
             if (_nodes.Length < capacity)
             {
                 Grow(capacity);
                 _version++;
             }
-
             return _nodes.Length;
         }
 
@@ -565,26 +535,19 @@ namespace System.Collections.Generic
         private void Grow(int minCapacity)
         {
             Debug.Assert(_nodes.Length < minCapacity);
-
             const int GrowFactor = 2;
             const int MinimumGrow = 4;
-
             int newcapacity = GrowFactor * _nodes.Length;
-
             // Allow the queue to grow to maximum possible capacity (~2G elements) before encountering overflow.
             // Note that this check works even when _nodes.Length overflowed thanks to the (uint) cast
-
             // Original:
             //if ((uint)newcapacity > Array.MaxLength) newcapacity = Array.MaxLength;
             if ((uint)newcapacity > Constants.MaxLength) newcapacity = Constants.MaxLength;
-
             // Ensure minimum growth is respected.
             newcapacity = Math.Max(newcapacity, _nodes.Length + MinimumGrow);
-
             // If the computed capacity is still less than specified, set to the original argument.
             // Capacities exceeding Array.MaxLength will be surfaced as OutOfMemoryException by Array.Resize.
             if (newcapacity < minCapacity) newcapacity = minCapacity;
-
             Array.Resize(ref _nodes, newcapacity);
         }
 
@@ -595,7 +558,6 @@ namespace System.Collections.Generic
         {
             int lastNodeIndex = --_size;
             _version++;
-
             if (lastNodeIndex > 0)
             {
                 (TElement Element, TPriority Priority) lastNode = _nodes[lastNodeIndex];
@@ -608,7 +570,6 @@ namespace System.Collections.Generic
                     MoveDownCustomComparer(lastNode, 0);
                 }
             }
-
             if (RuntimeHelpers.IsReferenceOrContainsReferences<(TElement, TPriority)>())
             {
                 _nodes[lastNodeIndex] = default;
@@ -637,7 +598,6 @@ namespace System.Collections.Generic
 
             (TElement Element, TPriority Priority)[] nodes = _nodes;
             int lastParentWithChildren = GetParentIndex(_size - 1);
-
             if (_comparer == null)
             {
                 for (int index = lastParentWithChildren; index >= 0; --index)
@@ -661,12 +621,9 @@ namespace System.Collections.Generic
         {
             // Instead of swapping items all the way to the root, we will perform
             // a similar optimization as in the insertion sort.
-
             Debug.Assert(_comparer is null);
             Debug.Assert(0 <= nodeIndex && nodeIndex < _size);
-
             (TElement Element, TPriority Priority)[] nodes = _nodes;
-
             while (nodeIndex > 0)
             {
                 int parentIndex = GetParentIndex(nodeIndex);
@@ -682,7 +639,6 @@ namespace System.Collections.Generic
                     break;
                 }
             }
-
             nodes[nodeIndex] = node;
         }
 
@@ -693,18 +649,14 @@ namespace System.Collections.Generic
         {
             // Instead of swapping items all the way to the root, we will perform
             // a similar optimization as in the insertion sort.
-
             Debug.Assert(_comparer is not null);
             Debug.Assert(0 <= nodeIndex && nodeIndex < _size);
-
             IComparer<TPriority> comparer = _comparer;
             (TElement Element, TPriority Priority)[] nodes = _nodes;
-
             while (nodeIndex > 0)
             {
                 int parentIndex = GetParentIndex(nodeIndex);
                 (TElement Element, TPriority Priority) parent = nodes[parentIndex];
-
                 if (comparer.Compare(node.Priority, parent.Priority) < 0)
                 {
                     nodes[nodeIndex] = parent;
@@ -715,7 +667,6 @@ namespace System.Collections.Generic
                     break;
                 }
             }
-
             nodes[nodeIndex] = node;
         }
 
@@ -727,20 +678,16 @@ namespace System.Collections.Generic
             // The node to move down will not actually be swapped every time.
             // Rather, values on the affected path will be moved up, thus leaving a free spot
             // for this value to drop in. Similar optimization as in the insertion sort.
-
             Debug.Assert(_comparer is null);
             Debug.Assert(0 <= nodeIndex && nodeIndex < _size);
-
             (TElement Element, TPriority Priority)[] nodes = _nodes;
             int size = _size;
-
             int i;
             while ((i = GetFirstChildIndex(nodeIndex)) < size)
             {
                 // Find the child node with the minimal priority
                 (TElement Element, TPriority Priority) minChild = nodes[i];
                 int minChildIndex = i;
-
                 int childIndexUpperBound = Math.Min(i + Arity, size);
                 while (++i < childIndexUpperBound)
                 {
@@ -751,19 +698,16 @@ namespace System.Collections.Generic
                         minChildIndex = i;
                     }
                 }
-
                 // Heap property is satisfied; insert node in this location.
                 if (Comparer<TPriority>.Default.Compare(node.Priority, minChild.Priority) <= 0)
                 {
                     break;
                 }
-
                 // Move the minimal child up by one node and
                 // continue recursively from its location.
                 nodes[nodeIndex] = minChild;
                 nodeIndex = minChildIndex;
             }
-
             nodes[nodeIndex] = node;
         }
 
@@ -775,21 +719,17 @@ namespace System.Collections.Generic
             // The node to move down will not actually be swapped every time.
             // Rather, values on the affected path will be moved up, thus leaving a free spot
             // for this value to drop in. Similar optimization as in the insertion sort.
-
             Debug.Assert(_comparer is not null);
             Debug.Assert(0 <= nodeIndex && nodeIndex < _size);
-
             IComparer<TPriority> comparer = _comparer;
             (TElement Element, TPriority Priority)[] nodes = _nodes;
             int size = _size;
-
             int i;
             while ((i = GetFirstChildIndex(nodeIndex)) < size)
             {
                 // Find the child node with the minimal priority
                 (TElement Element, TPriority Priority) minChild = nodes[i];
                 int minChildIndex = i;
-
                 int childIndexUpperBound = Math.Min(i + Arity, size);
                 while (++i < childIndexUpperBound)
                 {
@@ -800,18 +740,15 @@ namespace System.Collections.Generic
                         minChildIndex = i;
                     }
                 }
-
                 // Heap property is satisfied; insert node in this location.
                 if (comparer.Compare(node.Priority, minChild.Priority) <= 0)
                 {
                     break;
                 }
-
                 // Move the minimal child up by one node and continue recursively from its location.
                 nodes[nodeIndex] = minChild;
                 nodeIndex = minChildIndex;
             }
-
             nodes[nodeIndex] = node;
         }
 
@@ -828,7 +765,6 @@ namespace System.Collections.Generic
                     // revert to using the optimized path.
                     return null;
                 }
-
                 return comparer;
             }
             else
@@ -932,7 +868,6 @@ namespace System.Collections.Generic
                         _index++;
                         return true;
                     }
-
                     return MoveNextRare();
                 }
 
@@ -942,7 +877,6 @@ namespace System.Collections.Generic
                     {
                         throw new InvalidOperationException(ErrorMessage.InvalidOperation.EnumFailedVersion);
                     }
-
                     _index = _queue._size + 1;
                     _current = default;
                     return false;

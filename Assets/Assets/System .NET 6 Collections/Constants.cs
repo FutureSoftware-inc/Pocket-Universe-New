@@ -8,5 +8,9 @@ namespace System.Collections.Generic
         // BeardedPlatypus: Array.MaxLength is not available within Unity. As such the MaxLength is defined
         // explicitly as the max value of a int32. 
         internal const int MaxLength = int.MaxValue;
+
+        // Общие константы для роста массивов в Deque и будущих коллекциях:
+        internal const int MinimumGrow = 4;
+        internal const int GrowFactor = 2;
     }
 }

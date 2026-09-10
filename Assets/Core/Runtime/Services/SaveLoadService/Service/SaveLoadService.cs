@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+using System.Reflection;
 #if USE_UNITASK
 using ASYNC_TASK = Cysharp.Threading.Tasks.UniTask;
 using Cysharp.Threading.Tasks;
@@ -5,9 +8,7 @@ using Cysharp.Threading.Tasks;
 using ASYNC_TASK = System.Threading.Tasks.Task;
 using System.Threading.Tasks;
 #endif
-using System;
-using System.Collections.Generic;
-using System.Reflection;
+
 namespace CrystalEngine.Services
 {
     internal sealed class SaveLoadService : ISaveLoadService
@@ -15,25 +16,36 @@ namespace CrystalEngine.Services
         private readonly SaveLoadMetaDataCache _metaDataCache;
         private readonly Dictionary<SerializationFormat, ISerializationStrategy> _serializationStrategies = new();
         private readonly Dictionary<SaveContext, IDataStorageService> _storageRouteMap = new();
-        private readonly List<ISaveableDataProvider> _providers = new List<ISaveableDataProvider>();
+        private readonly List<ISaveableDataProvider> _providers = new();
+        private readonly object _providersLock = new();
         private SerializationFormat _currentFormat = SerializationFormat.Json;
 
-        public SaveLoadService(SaveLoadMetaDataCache metaDataCache)
+        public SaveLoadService(SaveLoadMetaDataCache metaDataCache, IReadOnlyList<ISerializationStrategy> strategies)
         {
-            _metaDataCache = metaDataCache;
-            _serializationStrategies[SerializationFormat.Json] = new JsonSerializationStrategy();
-            _serializationStrategies[SerializationFormat.Xml] = new XmlSerializationStrategy();
-            _serializationStrategies[SerializationFormat.Binary] = new BinarySerializationStrategy();
+            _metaDataCache = metaDataCache ?? throw new ArgumentNullException(nameof(metaDataCache));
+            if (strategies != null)
+            {
+                for (int i = 0; i < strategies.Count; i++)
+                {
+                    var strategy = strategies[i];
+                    if (strategy is JsonSerializationStrategy) _serializationStrategies[SerializationFormat.Json] = strategy;
+                    else if (strategy is XmlSerializationStrategy) _serializationStrategies[SerializationFormat.Xml] = strategy;
+                    else if (strategy is BinarySerializationStrategy) _serializationStrategies[SerializationFormat.Binary] = strategy;
+                }
+            }
+            _serializationStrategies.TryAdd(SerializationFormat.Json, new JsonSerializationStrategy());
+            _serializationStrategies.TryAdd(SerializationFormat.Xml, new XmlSerializationStrategy());
+            _serializationStrategies.TryAdd(SerializationFormat.Binary, new BinarySerializationStrategy());
         }
 
         public void RegisterProvider(ISaveableDataProvider provider)
         {
-            _providers.Add(provider);
+            lock (_providersLock) _providers.Add(provider);
         }
 
         public void UnregisterProvider(ISaveableDataProvider provider)
         {
-            _providers.Remove(provider);
+            lock (_providersLock) _providers.Remove(provider);
         }
 
         public void ConfigureStorageRoute(SaveContext context, IDataStorageService storageService)
@@ -53,16 +65,22 @@ namespace CrystalEngine.Services
                 throw new Exception($"[SaveLoad Error] Для контекста {context} не настроен маршрут хранения данных!");
             }
             Dictionary<string, Dictionary<string, object>> globalStateGraph = new();
-            for (int i = 0; i < _providers.Count; i++)
+            lock (_providersLock)
             {
-                ISaveableDataProvider provider = _providers[i];
-                if (provider.Context != context) continue;
-                globalStateGraph[provider.DataKey] = ExtractProviderData(provider);
+                for (int i = 0; i < _providers.Count; i++)
+                {
+                    ISaveableDataProvider provider = _providers[i];
+                    if (provider.Context != context) continue;
+                    globalStateGraph[provider.DataKey] = ExtractProviderData(provider);
+                }
             }
+
+            ISerializationStrategy strategy = _serializationStrategies[_currentFormat];
+
 #if USE_UNITASK
+            // Выносим в фоновый поток только сериализацию байт и дисковый IO
             await UniTask.RunOnThreadPool(async () =>
             {
-                ISerializationStrategy strategy = _serializationStrategies[_currentFormat];
                 byte[] rawData = strategy.Serialize(globalStateGraph);
                 await storageService.SaveBytesAsync(slotName, rawData);
             });
@@ -75,6 +93,7 @@ namespace CrystalEngine.Services
             });
 #endif
         }
+
         public async ASYNC_TASK LoadContextAsync(SaveContext context, string slotName)
         {
             if (!_storageRouteMap.TryGetValue(context, out IDataStorageService storageService))
@@ -82,31 +101,37 @@ namespace CrystalEngine.Services
                 throw new Exception($"[SaveLoad Error] Для контекста {context} не настроен маршрут загрузки данных!");
             }
             if (!storageService.Exists(slotName)) return;
+
             Dictionary<string, Dictionary<string, object>> globalStateGraph = null;
+            ISerializationStrategy strategy = _serializationStrategies[_currentFormat];
+
 #if USE_UNITASK
             await UniTask.RunOnThreadPool(async () =>
             {
                 byte[] rawData = await storageService.LoadBytesAsync(slotName);
-                ISerializationStrategy strategy = _serializationStrategies[_currentFormat];
                 globalStateGraph = strategy.Deserialize(rawData);
             });
 #else
             await Task.Run(async () =>
             {
                 byte[] rawData = await storageService.LoadBytesAsync(slotName);
-                ISerializationStrategy strategy = _serializationStrategies[_currentFormat];
                 globalStateGraph = strategy.Deserialize(rawData);
             });
 #endif
+
             if (globalStateGraph == null) return;
-            for (int i = 0; i < _providers.Count; i++)
+            lock (_providersLock)
             {
-                ISaveableDataProvider provider = _providers[i];
-                if (provider.Context != context) continue;
-                if (!globalStateGraph.TryGetValue(provider.DataKey, out Dictionary<string, object> providerData)) continue;
-                ApplyProviderData(provider, providerData);
+                for (int i = 0; i < _providers.Count; i++)
+                {
+                    ISaveableDataProvider provider = _providers[i];
+                    if (provider.Context != context) continue;
+                    if (!globalStateGraph.TryGetValue(provider.DataKey, out Dictionary<string, object> providerData)) continue;
+                    ApplyProviderData(provider, providerData);
+                }
             }
         }
+
         public void SaveEntity(ISaveableDataProvider provider)
         {
             if (!_storageRouteMap.TryGetValue(provider.Context, out IDataStorageService storageService))
@@ -120,6 +145,7 @@ namespace CrystalEngine.Services
             byte[] rawData = _serializationStrategies[_currentFormat].Serialize(singleEntityGraph);
             _ = storageService.SaveBytesAsync($"entity_{provider.DataKey}.dat", rawData);
         }
+
         public void LoadEntity(ISaveableDataProvider provider)
         {
             if (!_storageRouteMap.TryGetValue(provider.Context, out IDataStorageService storageService))
@@ -128,15 +154,18 @@ namespace CrystalEngine.Services
             }
             string entitySlotName = $"entity_{provider.DataKey}.dat";
             if (!storageService.Exists(entitySlotName)) return;
+            byte[] rawData;
 #if USE_UNITASK
-            byte[] rawData = storageService.LoadBytesAsync(entitySlotName).GetAwaiter().GetResult();
+            rawData = UniTask.RunOnThreadPool(async () => await storageService.LoadBytesAsync(entitySlotName)).GetAwaiter().GetResult();
 #else
-            byte[] rawData = storageService.LoadBytesAsync(entitySlotName).Result;
+            rawData = Task.Run(async () => await storageService.LoadBytesAsync(entitySlotName)).GetAwaiter().GetResult();
 #endif
+
             Dictionary<string, Dictionary<string, object>> globalStateGraph = _serializationStrategies[_currentFormat].Deserialize(rawData);
             if (globalStateGraph == null || !globalStateGraph.TryGetValue(provider.DataKey, out Dictionary<string, object> providerData)) return;
             ApplyProviderData(provider, providerData);
         }
+
         private Dictionary<string, object> ExtractProviderData(ISaveableDataProvider provider)
         {
             IReadOnlyList<FieldInfo> fields = _metaDataCache.GetSerializableFields(provider.GetType());
@@ -154,6 +183,7 @@ namespace CrystalEngine.Services
             }
             return providerData;
         }
+
         private void ApplyProviderData(ISaveableDataProvider provider, Dictionary<string, object> providerData)
         {
             IReadOnlyList<FieldInfo> fields = _metaDataCache.GetSerializableFields(provider.GetType());

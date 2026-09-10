@@ -32,24 +32,21 @@ namespace CrystalEngine.Services
             if (bytes == null || bytes.Length == 0) return graph;
             using (MemoryStream stream = new(bytes))
             {
-                using (BinaryReader reader = new(stream, Encoding.UTF8))
+                using BinaryReader reader = new(stream, Encoding.UTF8);
+                int providerCount = reader.ReadInt32();
+
+                for (int i = 0; i < providerCount; i++)
                 {
-                    int providerCount = reader.ReadInt32();
-
-                    for (int i = 0; i < providerCount; i++)
+                    string providerKey = reader.ReadString();
+                    int fieldCount = reader.ReadInt32();
+                    Dictionary<string, object> providerData = new();
+                    for (int j = 0; j < fieldCount; j++)
                     {
-                        string providerKey = reader.ReadString();
-                        int fieldCount = reader.ReadInt32();
-                        Dictionary<string, object> providerData = new();
-                        for (int j = 0; j < fieldCount; j++)
-                        {
-                            string fieldName = reader.ReadString();
-                            object fieldValue = UnpackValue(reader);
-                            providerData[fieldName] = fieldValue;
-                        }
-
-                        graph[providerKey] = providerData;
+                        string fieldName = reader.ReadString();
+                        object fieldValue = UnpackValue(reader);
+                        providerData[fieldName] = fieldValue;
                     }
+                    graph[providerKey] = providerData;
                 }
             }
             return graph;
