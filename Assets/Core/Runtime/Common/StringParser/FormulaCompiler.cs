@@ -96,7 +96,7 @@ namespace CrystalEngine
                     }
 
                     Union val = dotCount > 0 ?
-                        new Union(float.Parse(numSpan, CultureInfo.InvariantCulture)) :
+                        new Union(float.Parse(numSpan, NumberStyles.Integer)) :
                         new Union(int.Parse(numSpan));
 
                     tokens[tokenIdx++] = new Token(TokenType.Number) { ConstantValue = val };
