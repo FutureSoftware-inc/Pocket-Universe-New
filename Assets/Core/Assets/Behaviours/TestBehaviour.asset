@@ -12,4 +12,34 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f9aac241b49c14740b06291770862531, type: 3}
   m_Name: TestBehaviour
   m_EditorClassIdentifier: Assembly-CSharp::Crystal.HFSM.BehaviourGraphData
-  _editorNodes: []
+  _editorNodes:
+  - _guid: 
+    _position: {x: 0, y: 0}
+    _nodeName: 
+  - _guid: 
+    _position: {x: 0, y: 0}
+    _nodeName: 
+  _runtimeStates:
+  - rid: 266435917588463616
+  - rid: -2
+  references:
+    version: 2
+    RefIds:
+    - rid: -2
+      type: {class: , ns: , asm: }
+    - rid: 266435917588463616
+      type: {class: 'SyncState`1[[CrystalEngine.IBlackboardProvider, Assembly-CSharp]]', ns: CrystalEngine, asm: Assembly-CSharp}
+      data:
+        _stateName: 
+        _transitions:
+        - rid: 266435917588463617
+        _entryCommands:
+        - rid: -2
+        _exitCommands: []
+        _updateCommands: []
+        _fixedUpdateCommands: []
+        _lateUpdateCommands: []
+    - rid: 266435917588463617
+      type: {class: 'Transition`1[[CrystalEngine.IBlackboardProvider, Assembly-CSharp]]', ns: CrystalEngine, asm: Assembly-CSharp}
+      data:
+        _targetStateName: 

@@ -10,7 +10,7 @@ namespace CrystalEngine
     /// Replaces the default technical class name with a user-friendly name in the Inspector.
     /// </summary>
     [AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = false)]
-    public class SelectorNameAttribute : Attribute
+    public sealed class SelectorNameAttribute : Attribute
     {
         /// <summary>
         /// Кастомное имя класса, отображаемое в выпадающем списке селектора.
@@ -24,7 +24,7 @@ namespace CrystalEngine
         /// <br/><br/>
         /// Initializes a new instance of the <see cref="SelectorNameAttribute"/> class with the specified custom name.
         /// </summary>
-        /// <param name="name">Отображаемое имя класса. / The display name of the class.</param>
+        /// <param name="name">Отображаемое имя класса.<br/><br/>The display name of the class.</param>
         public SelectorNameAttribute(string name)
         {
             Name = name;

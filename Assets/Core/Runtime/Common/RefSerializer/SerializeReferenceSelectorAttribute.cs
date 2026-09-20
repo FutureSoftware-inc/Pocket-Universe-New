@@ -44,7 +44,7 @@ namespace CrystalEngine
         /// <br/><br/>
         /// Initializes a new instance of the <see cref="SerializeReferenceSelectorAttribute"/> class with the specified custom title.
         /// </summary>
-        /// <param name="title">Отображаемый заголовок для поля. / The display title for the field.</param>
+        /// <param name="title">Отображаемый заголовок для поля.<br/><br/>The display title for the field.</param>
         public SerializeReferenceSelectorAttribute(string title)
         {
             Title = title;

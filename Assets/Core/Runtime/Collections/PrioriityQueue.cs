@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 
-namespace Crystal.Collections
+namespace CrystalEngine.Collections
 {
     public class PriorityQueue<T> : IEnumerable<T>, IReadOnlyCollection<T>, ICollection
     {

@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace CrystalEngine.HFSM
+namespace CrystalEngine
 {
     /// <summary>
     /// Ассет на базе ScriptableObject для сохранения и хранения структуры графа поведения (HFSM).
@@ -11,7 +11,7 @@ namespace CrystalEngine.HFSM
     /// A ScriptableObject asset for saving and storing the behavior graph structure (HFSM).
     /// Combines visual metadata for the GraphView editor and executable state data for runtime.
     /// </summary>
-    [CreateAssetMenu(menuName = "Crystal/HFSM/Behaviour Graph Asset", fileName = "NewBehaviourGraph")]
+    [CreateAssetMenu(menuName = "CrystalEngine/HFSM/Behaviour Graph Asset", fileName = "NewBehaviourGraph")]
     public sealed class BehaviourGraphData : ScriptableObject
     {
         /// <summary>
@@ -29,7 +29,7 @@ namespace CrystalEngine.HFSM
         /// </summary>
         [Header("Runtime State Machine Graph")]
         [SerializeReferenceSelector]
-        [SerializeField] private List<IState<IBlackboardProvider>> _runtimeStates = new();
+        [SerializeReference] private List<IState<IBlackboardProvider>> _runtimeStates = new();
 
         /// <summary>
         /// Возвращает доступный только для чтения список узлов редактора графа.
@@ -50,9 +50,9 @@ namespace CrystalEngine.HFSM
         /// <br/><br/>
         /// Saves the provided graph structure, updates the asset data, and marks it as dirty within the Unity Editor.
         /// </summary>
-        /// <param name="editorNodes">Список узлов с метаданными редактора. Не может быть null. / The list of nodes with editor metadata. Cannot be null.</param>
-        /// <param name="runtimeStates">Список исполняемых состояний для рантайма. Не может быть null. / The list of executable states for runtime. Cannot be null.</param>
-        /// <exception cref="ArgumentNullException">Вызывается, если один из переданных списков равен null. / Thrown when one of the specified lists is null.</exception>
+        /// <param name="editorNodes">Список узлов с метаданными редактора. Не может быть null.<br/><br/>The list of nodes with editor metadata. Cannot be null.</param>
+        /// <param name="runtimeStates">Список исполняемых состояний для рантайма. Не может быть null.<br/><br/>The list of executable states for runtime. Cannot be null.</param>
+        /// <exception cref="ArgumentNullException">Вызывается, если один из переданных списков равен null.<br/><br/>Thrown when one of the specified lists is null.</exception>
         public void SaveGraph(List<GraphNodeData> editorNodes, List<IState<IBlackboardProvider>> runtimeStates)
         {
             _editorNodes = editorNodes ?? throw new ArgumentNullException(nameof(editorNodes));

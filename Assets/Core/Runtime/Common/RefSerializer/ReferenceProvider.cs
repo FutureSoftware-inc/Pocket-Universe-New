@@ -39,7 +39,7 @@ namespace CrystalEngine
         /// <br/><br/>
         /// Initializes a new instance of the reference provider based on the specified interface object.
         /// </summary>
-        /// <param name="target">Объект, реализующий целевой интерфейс. / The object implementing the target interface.</param>
+        /// <param name="target">Объект, реализующий целевой интерфейс.<br/><br/>The object implementing the target interface.</param>
         public ReferenceProvider(TInterface target)
         {
             if (target is UnityEngine.Object obj)

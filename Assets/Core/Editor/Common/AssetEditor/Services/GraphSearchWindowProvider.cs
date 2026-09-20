@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 
-namespace CrystalEditor
+namespace CrystalEngineEditor
 {
     /// <summary>
     /// Универсальный провайдер дерева поиска для спавна узлов на холсте GraphView.

@@ -24,7 +24,7 @@ namespace CrystalEngine
         /// <br/><br/>
         /// Initializes a new instance of the <see cref="SubclassPathAttribute"/> class with the specified hierarchical path.
         /// </summary>
-        /// <param name="path">Строка пути с категориями для группировки в меню. / The path string with categories for menu grouping.</param>
+        /// <param name="path">Строка пути с категориями для группировки в меню.<br/><br/>The path string with categories for menu grouping.</param>
         public SubclassPathAttribute(string path)
         {
             Path = path;

@@ -10,7 +10,7 @@ namespace CrystalEngine
     /// Allows visually distinguishing a type in the Inspector by associating it with a texture or built-in Unity GUI asset.
     /// </summary>
     [AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = false)]
-    public class SelectorIconAttribute : Attribute
+    public sealed class SelectorIconAttribute : Attribute
     {
         /// <summary>
         /// Имя или путь к графическому ресурсу иконки, которая будет отображаться рядом с элементом.
@@ -24,7 +24,7 @@ namespace CrystalEngine
         /// <br/><br/>
         /// Initializes a new instance of the <see cref="SelectorIconAttribute"/> class with the specified icon name or path.
         /// </summary>
-        /// <param name="iconName">Имя или идентификатор иконки для загрузки. / The name or identifier of the icon to load.</param>
+        /// <param name="iconName">Имя или идентификатор иконки для загрузки.<br/><br/>The name or identifier of the icon to load.</param>
         public SelectorIconAttribute(string iconName)
         {
             IconName = iconName;

@@ -2,7 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 
-namespace Crystal.Collections
+namespace CrystalEngine.Collections
 
 {
     public class BinaryTreeNode<T> where T : IComparable<T>

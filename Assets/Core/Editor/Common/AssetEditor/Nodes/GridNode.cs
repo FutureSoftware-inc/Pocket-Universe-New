@@ -3,7 +3,7 @@ using UnityEditor.Experimental.GraphView;
 using UnityEngine.UIElements;
 using CrystalEngine;
 
-namespace CrystalEditor
+namespace CrystalEngineEditor
 {
     public class GridNode : Node
     {
